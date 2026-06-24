@@ -157,11 +157,11 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
 #mb-detail.is-opening #mb-detail-content{opacity:1;transform:translateY(0)}
 .detail-heading{
   position:absolute;
-  top:88px;
+  top:96px;
   left:24px;
   right:24px;
   text-align:center;
-  font-size:27px;
+  font-size:29px;
   font-weight:700;
   line-height:1.16;
 }
@@ -173,8 +173,8 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   border-radius:50%;
   object-fit:cover;
 }
-.detail-heading-muted{display:block;color:rgba(255,255,255,.68);font-weight:500}
-.detail-heading-main{display:block;margin-top:3px}
+.detail-heading-muted{display:block;margin-top:5px;color:rgba(255,255,255,.68);font-weight:500}
+.detail-heading-main{display:block;margin-top:5px}
 .detail-note{
   position:absolute;
   width:128px;
@@ -781,7 +781,8 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     const imageControl = document.createElement('div');
     imageControl.className = 'image-ctl';
     imageControl.dataset.imageRow = index;
-    imageControl.innerHTML = '<img class="image-preview" id="preview-'+index+'" alt=""><span class="image-meta"><span class="image-name">Bubble '+(index+1)+'</span><span class="image-state" id="image-state-'+index+'">Default image</span></span><span class="image-actions"><button class="image-action" type="button" data-upload="'+index+'" aria-label="Upload image for bubble '+(index+1)+'" title="Upload image">File</button><button class="image-action" type="button" data-paste="'+index+'" aria-label="Paste image into bubble '+(index+1)+'" title="Paste from clipboard">Paste</button></span><input class="image-input" id="image-input-'+index+'" data-input="'+index+'" type="file" accept="image/*">';
+    const actions=index===7 ? '' : '<span class="image-actions"><button class="image-action" type="button" data-upload="'+index+'" aria-label="Upload image for bubble '+(index+1)+'" title="Upload image">File</button><button class="image-action" type="button" data-paste="'+index+'" aria-label="Paste image into bubble '+(index+1)+'" title="Paste from clipboard">Paste</button></span><input class="image-input" id="image-input-'+index+'" data-input="'+index+'" type="file" accept="image/*">';
+    imageControl.innerHTML = '<img class="image-preview" id="preview-'+index+'" alt=""><span class="image-meta"><span class="image-name">Bubble '+(index+1)+'</span><span class="image-state" id="image-state-'+index+'">Default image</span></span>'+actions;
     document.getElementById('mb-clipboard-hint').before(imageControl);
   }
 
@@ -864,9 +865,88 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
       request.onsuccess = ()=>resolve(request.result);
       request.onerror = ()=>reject(request.error);
     });
-    records.forEach(record=>{
+    records.filter(record=>record.bubble!==7).forEach(record=>{
       loadImageBlob(record.bubble, record.blob, record.label || 'Saved image', false);
     });
+  }
+
+  let bubble8AvatarSrc='';
+  function uploadCanvasTexture(unit, source, label){
+    gl.activeTexture(gl.TEXTURE0+unit);
+    gl.bindTexture(gl.TEXTURE_2D,textures[unit]);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);
+    document.getElementById('preview-'+unit).src=source.toDataURL('image/jpeg',.9);
+    document.getElementById('image-state-'+unit).textContent=label;
+  }
+
+  function buildBubble8Composite(){
+    imageLoadVersion[7]++;
+    const image=new Image();
+    image.onload=()=>{
+      const size=512;
+      const canvas8=document.createElement('canvas');
+      canvas8.width=size;
+      canvas8.height=size;
+      const context=canvas8.getContext('2d');
+      const sourceScale=Math.max(size/image.naturalWidth,size/image.naturalHeight);
+      const sourceWidth=image.naturalWidth*sourceScale;
+      const sourceHeight=image.naturalHeight*sourceScale;
+      const sourceX=(size-sourceWidth)/2;
+      const sourceY=(size-sourceHeight)/2;
+
+      context.save();
+      context.filter='blur(18px)';
+      context.drawImage(image,sourceX-18,sourceY-18,sourceWidth+36,sourceHeight+36);
+      context.restore();
+      const shade=context.createLinearGradient(0,0,0,size);
+      shade.addColorStop(0,'rgba(38,31,28,.18)');
+      shade.addColorStop(.5,'rgba(92,44,20,.08)');
+      shade.addColorStop(1,'rgba(73,30,9,.42)');
+      context.fillStyle=shade;
+      context.fillRect(0,0,size,size);
+
+      const avatar=document.createElement('canvas');
+      avatar.width=72;
+      avatar.height=72;
+      const avatarContext=avatar.getContext('2d');
+      avatarContext.beginPath();
+      avatarContext.arc(36,36,34,0,Math.PI*2);
+      avatarContext.clip();
+      avatarContext.drawImage(image,65,330,195,195,0,0,72,72);
+      bubble8AvatarSrc=avatar.toDataURL('image/png');
+
+      context.save();
+      context.beginPath();
+      context.arc(147,124,29,0,Math.PI*2);
+      context.clip();
+      context.drawImage(avatar,118,95,58,58);
+      context.restore();
+      context.strokeStyle='rgba(255,255,255,.92)';
+      context.lineWidth=3;
+      context.beginPath();
+      context.arc(147,124,29,0,Math.PI*2);
+      context.stroke();
+
+      context.textAlign='center';
+      context.fillStyle='#fff';
+      context.font='700 43px "DM Sans", sans-serif';
+      context.fillText('Give Nori',302,139);
+      context.fillStyle='rgba(255,255,255,.72)';
+      context.font='500 39px "DM Sans", sans-serif';
+      context.fillText('a rounded face',256,205);
+      context.fillStyle='#fff';
+      context.font='700 40px "DM Sans", sans-serif';
+      context.fillText('like teddy-bear',240,269);
+
+      context.fillStyle='rgba(255,255,255,.65)';
+      context.font='500 30px "DM Sans", sans-serif';
+      context.fillText('Sun Jun 21',256,354);
+      context.fillText('11:00 am - 12:30 pm',256,395);
+      context.fillText('3 inspo ready',256,436);
+      uploadCanvasTexture(7,canvas8,'Generated detail card');
+    };
+    image.src='bg-main1.png';
   }
 
   function applyProgressiveBlur(source){
@@ -985,12 +1065,16 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.uniform1i(gl.getUniformLocation(prog,'u_tex['+i+']'), i);
-    loadImageSource(i, 'data:image/svg+xml;charset=utf-8,' + SCENES[i%SCENES.length], 'Default image');
+    if(i!==7){
+      loadImageSource(i, 'data:image/svg+xml;charset=utf-8,' + SCENES[i%SCENES.length], 'Default image');
+    }
   }
   restoreBubbleImages().catch(()=>{
     const hint = document.getElementById('mb-clipboard-hint');
     if(hint) hint.textContent = 'Saved images are unavailable in this browser.';
   });
+  buildBubble8Composite();
+  document.fonts.ready.then(buildBubble8Composite);
 
   function hex(h){ h=h.replace('#',''); return [parseInt(h.substr(0,2),16)/255, parseInt(h.substr(2,2),16)/255, parseInt(h.substr(4,2),16)/255]; }
 
@@ -1174,9 +1258,8 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     const b=balls[0];
     const radius=b.r*flowScale[0];
     const diameter=Math.ceil(radius*2);
-    const imageSource=document.getElementById('preview-7').src;
-    detailView.style.backgroundImage='url("'+imageSource.replace(/"/g,'\\"')+'")';
-    detailAvatar.src=imageSource;
+    detailView.style.backgroundImage='url("bg-main1.png")';
+    detailAvatar.src=bubble8AvatarSrc || document.getElementById('preview-7').src;
     detailView.style.setProperty('--detail-x',b.dx+'px');
     detailView.style.setProperty('--detail-y',b.dy+'px');
     detailView.style.setProperty('--detail-radius',radius+'px');
