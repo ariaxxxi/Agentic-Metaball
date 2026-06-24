@@ -46,6 +46,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   cursor:grab;
 }
 #mb-wrap:active{cursor:grabbing}
+#mb-wrap.detail-ready{cursor:pointer}
 #mb-canvas{
   display:block;
   width:100%;
@@ -54,7 +55,29 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   transform-origin:center;
   transition:filter .8s cubic-bezier(.35,.23,.13,.98),opacity .8s cubic-bezier(.35,.23,.13,.98),transform .8s cubic-bezier(.35,.23,.13,.98);
 }
-#mb-canvas.is-listening{
+#mb-canvas.is-layered{
+  opacity:0;
+  transition:none;
+}
+#mb-bubble-transitions{
+  position:absolute;
+  z-index:2;
+  inset:0;
+  overflow:visible;
+  pointer-events:none;
+}
+.bubble-transition-layer{
+  position:absolute;
+  display:block;
+  transform:scale(1);
+  opacity:1;
+  transition:
+    filter .36s cubic-bezier(.35,.23,.13,.98),
+    opacity .36s cubic-bezier(.35,.23,.13,.98),
+    transform .36s cubic-bezier(.35,.23,.13,.98);
+  will-change:filter,opacity,transform;
+}
+.bubble-transition-layer.is-blurred{
   filter:blur(10px);
   opacity:.3;
   transform:scale(.94);
@@ -92,6 +115,121 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
 }
 .ai-spark::before{left:1px;bottom:0;width:24px;height:24px}
 .ai-spark::after{right:0;top:0;width:12px;height:12px}
+#mb-detail{
+  position:absolute;
+  z-index:6;
+  inset:0;
+  overflow:hidden;
+  color:#fff;
+  background-color:#a9a5a2;
+  background-position:center;
+  background-size:cover;
+  clip-path:circle(var(--detail-radius,0px) at var(--detail-x,50%) var(--detail-y,50%));
+  opacity:0;
+  pointer-events:none;
+  transition:
+    clip-path .95s cubic-bezier(.35,.23,.13,.98),
+    opacity .12s linear;
+}
+#mb-detail.is-opening{
+  clip-path:circle(var(--detail-cover,120%) at var(--detail-x,50%) var(--detail-y,50%));
+  opacity:1;
+  pointer-events:auto;
+}
+#mb-detail::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,rgba(24,20,18,.25) 0%,rgba(22,16,12,.04) 38%,rgba(12,8,6,.22) 100%);
+}
+#mb-detail-content{
+  position:absolute;
+  z-index:2;
+  inset:0;
+  opacity:0;
+  transform:translateY(22px);
+  transition:opacity .55s ease .42s,transform .7s cubic-bezier(.35,.23,.13,.98) .38s;
+}
+#mb-detail.is-opening #mb-detail-content{opacity:1;transform:translateY(0)}
+.detail-heading{
+  position:absolute;
+  top:88px;
+  left:24px;
+  right:24px;
+  text-align:center;
+  font-size:27px;
+  font-weight:700;
+  line-height:1.16;
+}
+.detail-heading-line{display:flex;align-items:center;justify-content:center;gap:9px}
+.detail-heading img{
+  width:34px;
+  height:34px;
+  border:2px solid rgba(255,255,255,.86);
+  border-radius:50%;
+  object-fit:cover;
+}
+.detail-heading-muted{display:block;color:rgba(255,255,255,.68);font-weight:500}
+.detail-heading-main{display:block;margin-top:3px}
+.detail-note{
+  position:absolute;
+  width:128px;
+  min-height:96px;
+  padding:17px 15px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:26px;
+  background:rgba(45,40,39,.35);
+  box-shadow:0 12px 32px rgba(0,0,0,.12);
+  color:#fff;
+  font-size:15px;
+  line-height:1.18;
+  backdrop-filter:blur(18px);
+}
+.detail-note::before{
+  content:"";
+  display:block;
+  width:22px;
+  height:22px;
+  margin-bottom:10px;
+  background:#fff;
+  clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);
+}
+.detail-note.one{top:390px;right:28px}
+.detail-note.two{left:44px;bottom:190px}
+.detail-note.three{right:24px;bottom:252px}
+#mb-detail-ai{
+  position:absolute;
+  left:50%;
+  bottom:28px;
+  display:grid;
+  width:66px;
+  height:66px;
+  place-items:center;
+  padding:0;
+  border:0;
+  border-radius:50%;
+  background:#111;
+  color:#fff;
+  transform:translateX(-50%);
+}
+#mb-detail-shared{
+  position:absolute;
+  z-index:7;
+  display:none;
+  border-radius:50%;
+  pointer-events:none;
+  transform-origin:center;
+  will-change:transform,opacity,border-radius;
+}
+#mb-detail-shared.is-expanding{
+  display:block;
+  animation:detail-shared-expand .95s cubic-bezier(.35,.23,.13,.98) forwards;
+}
+@keyframes detail-shared-expand{
+  0%{transform:scale(1);border-radius:50%;opacity:1}
+  58%{opacity:1}
+  100%{transform:scale(var(--detail-scale,8));border-radius:8%;opacity:0}
+}
 #mb-listening{
   position:absolute;
   z-index:3;
@@ -159,7 +297,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   transition:opacity .55s ease,transform .7s cubic-bezier(.35,.23,.13,.98);
 }
 #mb-listening.is-visible #mb-listening-text.is-dictating{opacity:1;transform:translateY(0)}
-#mb-listening-text.is-dictating{font-size:19px;color:#18171b}
+#mb-listening-text.is-dictating{font-size:22px;color:#18171b}
 .dictation-lead{display:block;color:#5f5a63;font-weight:400}
 .dictation-focus{display:block;color:#111;font-weight:400}
 @keyframes listen-breathe-a{
@@ -416,6 +554,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   <section id="mb-stage" aria-label="Interactive metaball canvas">
     <div id="mb-wrap">
       <canvas id="mb-canvas"></canvas>
+      <div id="mb-bubble-transitions" aria-hidden="true"></div>
       <div id="mb-listening" aria-live="polite">
         <span class="listen-blob one"></span>
         <span class="listen-blob two"></span>
@@ -423,6 +562,20 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
         <div id="mb-listening-text"></div>
       </div>
       <button id="mb-ai" type="button" aria-label="Open AI listening mode"><span class="ai-spark" aria-hidden="true"></span></button>
+      <div id="mb-detail" aria-hidden="true">
+        <div id="mb-detail-content">
+          <div class="detail-heading">
+            <span class="detail-heading-line"><img id="mb-detail-avatar" alt="">Give Nori</span>
+            <span class="detail-heading-muted">a rounded face</span>
+            <span class="detail-heading-main">like teddy-bear</span>
+          </div>
+          <div class="detail-note one">Rounded muzzle,<br>longer ears</div>
+          <div class="detail-note two">Tousled top<br>with shape</div>
+          <div class="detail-note three">Teddy-bear<br>face, 3/4 body</div>
+          <button id="mb-detail-ai" type="button" aria-label="AI assistant"><span class="ai-spark" aria-hidden="true"></span></button>
+        </div>
+      </div>
+      <canvas id="mb-detail-shared" aria-hidden="true"></canvas>
     </div>
   </section>
 
@@ -507,7 +660,8 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
 (function(){
   const wrap = document.getElementById('mb-wrap');
   const canvas = document.getElementById('mb-canvas');
-  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  const contextOptions = {preserveDrawingBuffer:true};
+  const gl = canvas.getContext('webgl',contextOptions) || canvas.getContext('experimental-webgl',contextOptions);
   if(!gl){ wrap.innerHTML = '<div id="mb-fallback">WebGL is not available in this view, so the metaball field can\u2019t render.</div>'; return; }
 
   const MAX_BALLS = Math.min(9, gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS));
@@ -566,7 +720,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     '    float blurAmount=1.0-smoothstep(0.0,0.3,sampleUV.y);',
     '    edgeBand=max(edgeBand,min(1.0,w)*blurAmount*20.0*u_dpr/r);',
     '    vec3 tc = texture2D(u_tex[i],sampleUV).rgb;',
-    '    if(i==0){ tc = mix(tc,texture2D(u_tex[7],sampleUV).rgb,u_swap); }',
+    '    if(i==0){ tc=mix(tc,texture2D(u_tex[7],sampleUV).rgb,u_swap); }',
     '    acc += tc*w; wsum += w;',
     '  }',
     '  float inside = edgeBand>0.0 ? smoothstep(1.0-edgeBand,1.0+edgeBand,field) : step(1.0,field);',
@@ -922,7 +1076,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   const flowScale = Array(MAX_BALLS).fill(1);
   const flowX = Array(MAX_BALLS).fill(0);
   const flowY = Array(MAX_BALLS).fill(0);
-  const mergeFloatBubbles = new Set([0,5,6]);
+  const mergeFloatBubbles = new Set([0,3,6]);
   const playButton = document.getElementById('mb-play');
   const startButton = document.getElementById('mb-start');
   const speakButton = document.getElementById('mb-speak');
@@ -930,9 +1084,13 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   const addButton = document.getElementById('mb-add');
   const removeButton = document.getElementById('mb-remove');
   const aiButton = document.getElementById('mb-ai');
+  const bubbleTransitions = document.getElementById('mb-bubble-transitions');
+  const detailView = document.getElementById('mb-detail');
+  const detailShared = document.getElementById('mb-detail-shared');
+  const detailAvatar = document.getElementById('mb-detail-avatar');
   const listeningLayer = document.getElementById('mb-listening');
   const listeningText = document.getElementById('mb-listening-text');
-  let preFlowState = 'idle';
+  let preFlowState = 'idle', bubbleLayersActive=false, detailReady=false, detailOpen=false;
 
   function flowEase(value){
     const x1=.35, y1=.23, x2=.13, y2=.98;
@@ -975,6 +1133,8 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     flowMerge=0;
     swapMix=0;
     flowFloatMix=1;
+    detailReady=false;
+    wrap.classList.remove('detail-ready');
     resetListeningVisuals();
     preFlowState='idle';
     startButton.disabled=false;
@@ -991,36 +1151,151 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     removeButton.disabled=true;
   }
   function resetListeningVisuals(){
-    canvas.classList.remove('is-listening');
+    closeDetail();
+    revealCanvasFromLayers();
     listeningLayer.classList.remove('is-visible');
     listeningText.classList.remove('is-dictating');
     listeningText.textContent='';
     aiButton.classList.remove('is-visible');
     speakButton.disabled=true;
   }
+  function closeDetail(){
+    detailOpen=false;
+    detailView.classList.remove('is-opening');
+    detailView.setAttribute('aria-hidden','true');
+    detailShared.classList.remove('is-expanding');
+    detailShared.style.display='none';
+    canvas.style.opacity='';
+  }
+  function openBubbleDetail(){
+    if(!detailReady || detailOpen) return;
+    detailOpen=true;
+    const b=balls[0];
+    const radius=b.r*flowScale[0];
+    const diameter=Math.ceil(radius*2);
+    const imageSource=document.getElementById('preview-7').src;
+    detailView.style.backgroundImage='url("'+imageSource.replace(/"/g,'\\"')+'")';
+    detailAvatar.src=imageSource;
+    detailView.style.setProperty('--detail-x',b.dx+'px');
+    detailView.style.setProperty('--detail-y',b.dy+'px');
+    detailView.style.setProperty('--detail-radius',radius+'px');
+    const farthest=Math.max(
+      Math.hypot(b.dx,b.dy),
+      Math.hypot(W-b.dx,b.dy),
+      Math.hypot(b.dx,H-b.dy),
+      Math.hypot(W-b.dx,H-b.dy)
+    );
+    detailView.style.setProperty('--detail-cover',(farthest+24)+'px');
+
+    detailShared.width=Math.ceil(diameter*dpr);
+    detailShared.height=Math.ceil(diameter*dpr);
+    detailShared.style.width=diameter+'px';
+    detailShared.style.height=diameter+'px';
+    detailShared.style.left=(b.dx-radius)+'px';
+    detailShared.style.top=(b.dy-radius)+'px';
+    detailShared.style.setProperty('--detail-scale',((farthest+24)/radius).toFixed(3));
+    const context=detailShared.getContext('2d');
+    context.setTransform(1,0,0,1,0,0);
+    context.clearRect(0,0,detailShared.width,detailShared.height);
+    context.drawImage(
+      canvas,
+      (b.dx-radius)*dpr,
+      (b.dy-radius)*dpr,
+      diameter*dpr,
+      diameter*dpr,
+      0,0,
+      diameter*dpr,
+      diameter*dpr
+    );
+
+    detailView.setAttribute('aria-hidden','false');
+    detailShared.style.display='block';
+    void detailShared.offsetWidth;
+    detailShared.classList.add('is-expanding');
+    detailView.classList.add('is-opening');
+    canvas.style.opacity='0';
+  }
+  function revealCanvasFromLayers(keepFrozen=false){
+    canvas.style.transition='none';
+    canvas.classList.remove('is-layered');
+    void canvas.offsetWidth;
+    bubbleTransitions.replaceChildren();
+    bubbleLayersActive=keepFrozen;
+    requestAnimationFrame(()=>canvas.style.removeProperty('transition'));
+  }
+  function createBubbleLayers(){
+    const visible=[0,1,2,3,4,8];
+    const pad=18;
+    bubbleTransitions.replaceChildren();
+    for(const index of visible){
+      const b=balls[index];
+      const radius=b.r*flowScale[index];
+      const size=Math.ceil((radius+pad)*2);
+      const layer=document.createElement('canvas');
+      const layerDpr=dpr;
+      layer.width=Math.ceil(size*layerDpr);
+      layer.height=Math.ceil(size*layerDpr);
+      layer.style.width=size+'px';
+      layer.style.height=size+'px';
+      layer.style.left=(b.dx-radius-pad)+'px';
+      layer.style.top=(b.dy-radius-pad)+'px';
+      layer.style.transitionDelay=(visible.indexOf(index)*45)+'ms';
+      layer.className='bubble-transition-layer';
+      const context=layer.getContext('2d');
+      context.scale(layerDpr,layerDpr);
+      context.beginPath();
+      context.arc(size/2,size/2,radius,0,Math.PI*2);
+      context.clip();
+      context.drawImage(
+        canvas,
+        (b.dx-radius-pad)*dpr,
+        (b.dy-radius-pad)*dpr,
+        size*dpr,
+        size*dpr,
+        0,0,size,size
+      );
+      bubbleTransitions.appendChild(layer);
+      flowX[index]=b.dx;
+      flowY[index]=b.dy;
+    }
+    bubbleLayersActive=true;
+    canvas.classList.add('is-layered');
+    return Array.from(bubbleTransitions.children);
+  }
+  function waitForLayerTransition(token, extra=0){
+    return waitFlow(360+5*45+extra,token);
+  }
   function setFlowStart(){
     flowOverride=true;
     flowMerge=0;
     swapMix=0;
     flowFloatMix=0;
+    const now=performance.now()*.001;
     for(let i=0;i<MAX_BALLS;i++){
       const startsVisible=i<5 || i===8;
       const keepFloating=mergeFloatBubbles.has(i);
-      flowX[i]=startsVisible ? balls[i].dx-(keepFloating ? balls[i].floatX : 0) : balls[i].hx;
-      flowY[i]=startsVisible ? balls[i].dy-(keepFloating ? balls[i].floatY : 0) : balls[i].hy;
+      const floatX=keepFloating ? Math.sin(now*balls[i].fx+balls[i].phx)*state.floatAmt : 0;
+      const floatY=keepFloating ? Math.cos(now*balls[i].fy+balls[i].phy)*state.floatAmt : 0;
+      flowX[i]=startsVisible ? balls[i].dx-floatX : balls[i].hx;
+      flowY[i]=startsVisible ? balls[i].dy-floatY : balls[i].hy;
+      balls[i].floatX=floatX;
+      balls[i].floatY=floatY;
       flowWeight[i]=startsVisible ? 1 : 0;
       flowScale[i]=startsVisible ? 1 : .12;
     }
+    bubbleLayersActive=false;
   }
-  async function runFlow(){
+  async function runFlow(initialHold=2000){
     const token=++flowToken;
+    detailReady=false;
+    wrap.classList.remove('detail-ready');
     flowRunning=true;
     lockFlowControls();
     playButton.textContent='Playing';
     setFlowStart();
-    await waitFlow(2000,token);
+    await waitFlow(initialHold,token);
 
-    await Promise.all([1,2,3,4,8].map(async(index,order)=>{
+    await Promise.all([1,2,4,8].map(async(index,order)=>{
       await waitFlow(order*95,token);
       await tweenFlow(460,token,p=>{
         flowWeight[index]=1-p;
@@ -1030,7 +1305,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     if(token!==flowToken) return;
     await waitFlow(1000,token);
 
-    await Promise.all([5,6].map(async(index,order)=>{
+    await Promise.all([6].map(async(index,order)=>{
       await waitFlow(order*130,token);
       await tweenFlow(540,token,p=>{
         flowWeight[index]=p;
@@ -1040,31 +1315,31 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     if(token!==flowToken) return;
     await waitFlow(1000,token);
 
-    const start5={x:flowX[5],y:flowY[5]};
-    const start6={x:flowX[6],y:flowY[6]};
+    const start4={x:flowX[3],y:flowY[3]};
+    const start7={x:flowX[6],y:flowY[6]};
     flowMerge=.8;
     await tweenFlow(1120,token,(p,raw)=>{
-      flowX[5]=start5.x+(flowX[0]+42-start5.x)*p;
-      flowY[5]=start5.y+(flowY[0]-24-start5.y)*p;
-      flowX[6]=start6.x+(flowX[0]-38-start6.x)*p;
-      flowY[6]=start6.y+(flowY[0]+34-start6.y)*p;
+      flowX[3]=start4.x+(flowX[0]+42-start4.x)*p;
+      flowY[3]=start4.y+(flowY[0]-24-start4.y)*p;
+      flowX[6]=start7.x+(flowX[0]-38-start7.x)*p;
+      flowY[6]=start7.y+(flowY[0]+34-start7.y)*p;
       flowScale[0]=1+Math.sin(Math.PI*Math.min(1,raw/.82))*.08;
       swapMix=flowEase(Math.max(0,Math.min(1,(raw-.48)/.3)));
       const absorb=Math.max(0,Math.min(1,(raw-.73)/.27));
-      flowWeight[5]=1-absorb;
+      flowWeight[3]=1-absorb;
       flowWeight[6]=1-absorb;
-      flowScale[5]=1-absorb*.78;
+      flowScale[3]=1-absorb*.78;
       flowScale[6]=1-absorb*.78;
     });
     if(token!==flowToken) return;
     flowScale[0]=1;
-    flowWeight[5]=0;
+    flowWeight[3]=0;
     flowWeight[6]=0;
     flowMerge=0;
     swapMix=1;
     await waitFlow(1000,token);
 
-    await Promise.all([1,2,3,4,8].map(async(index,order)=>{
+    await Promise.all([1,2,4,5,8].map(async(index,order)=>{
       flowScale[index]=.12;
       await waitFlow(order*115,token);
       await tweenFlow(520,token,p=>{
@@ -1080,6 +1355,8 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     await tweenFlow(700,token,p=>{ flowFloatMix=p; });
     if(token!==flowToken) return;
     flowRunning=false;
+    detailReady=true;
+    wrap.classList.add('detail-ready');
     playButton.textContent='Play';
   }
 
@@ -1117,8 +1394,11 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     const token=flowToken;
     preFlowState='listening';
     aiButton.classList.remove('is-visible');
-    canvas.classList.add('is-listening');
-    await waitFlow(260,token);
+    const layers=createBubbleLayers();
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    if(token!==flowToken) return;
+    layers.forEach(layer=>layer.classList.add('is-blurred'));
+    await waitForLayerTransition(token);
     if(token!==flowToken) return;
     listeningText.textContent='';
     listeningLayer.classList.add('is-visible');
@@ -1162,13 +1442,17 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     listeningLayer.classList.remove('is-visible');
     await waitFlow(720,token);
     if(token!==flowToken) return;
-    canvas.classList.remove('is-listening');
-    await waitFlow(850,token);
+    Array.from(bubbleTransitions.children).forEach(layer=>{
+      layer.style.transitionDelay='0ms';
+      layer.classList.remove('is-blurred');
+    });
+    await waitFlow(360,token);
     if(token!==flowToken) return;
+    revealCanvasFromLayers(true);
     listeningText.classList.remove('is-dictating');
     listeningText.textContent='';
     preFlowState='handoff';
-    await runFlow();
+    await runFlow(800);
     if(preFlowState==='handoff') preFlowState='complete';
   }
 
@@ -1194,8 +1478,19 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   }
   function ptr(e){ const r=canvas.getBoundingClientRect(); return {x:e.clientX-r.left, y:e.clientY-r.top}; }
   wrap.addEventListener('pointerdown', function(e){
-    if(flowOverride) return;
-    const p = ptr(e); let pick=-1, best=1e9;
+    const p = ptr(e);
+    if(flowOverride){
+      if(detailReady && !detailOpen){
+        const b=balls[0];
+        const distance=Math.hypot(p.x-b.dx,p.y-b.dy);
+        if(distance<=b.r+14){
+          openBubbleDetail();
+          e.preventDefault();
+        }
+      }
+      return;
+    }
+    let pick=-1, best=1e9;
     for(let i=0;i<MAX_BALLS;i++){
       if(!activeSlots[i]) continue;
       const b=balls[i]; const dx=p.x-b.dx, dy=p.y-b.dy; const d=Math.sqrt(dx*dx+dy*dy);
@@ -1250,6 +1545,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   wrap.addEventListener('pointerup', release);
   wrap.addEventListener('pointercancel', release);
   aiButton.addEventListener('pointerdown', event=>event.stopPropagation());
+  detailView.addEventListener('pointerdown', event=>event.stopPropagation());
   aiButton.addEventListener('click', event=>{
     event.stopPropagation();
     enterListening();
@@ -1402,7 +1698,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
       if(visible<=0) continue;
       const x = flowOverride ? flowX[i] : b.hx;
       const y = flowOverride ? flowY[i] : b.hy;
-      const flowAmp=mergeFloatBubbles.has(i) ? 1 : flowFloatMix;
+      const flowAmp=bubbleLayersActive ? 0 : (mergeFloatBubbles.has(i) ? 1 : flowFloatMix);
       const amp=flowOverride ? state.floatAmt*flowAmp : state.floatAmt;
       b.floatX=Math.sin(t*b.fx + b.phx)*amp;
       b.floatY=Math.cos(t*b.fy + b.phy)*amp;
