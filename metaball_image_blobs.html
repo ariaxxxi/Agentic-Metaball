@@ -82,6 +82,10 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   opacity:.3;
   transform:scale(.94);
 }
+.bubble-transition-layer.is-handoff{
+  opacity:0;
+  transition:opacity .14s linear;
+}
 #mb-ai{
   position:absolute;
   z-index:4;
@@ -588,7 +592,6 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
 
     <div id="mb-bar">
       <button id="mb-start" aria-label="Start the AI flow">Start</button>
-      <button id="mb-speak" aria-label="Simulate speaking" disabled>Speak</button>
       <button id="mb-play" aria-label="Play bubble animation">Play</button>
       <button id="mb-end" aria-label="End the active animation" disabled>End</button>
       <button id="mb-add" aria-label="Add a bubble">+ Add</button>
@@ -1079,7 +1082,6 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   const mergeFloatBubbles = new Set([0,3,6]);
   const playButton = document.getElementById('mb-play');
   const startButton = document.getElementById('mb-start');
-  const speakButton = document.getElementById('mb-speak');
   const endButton = document.getElementById('mb-end');
   const addButton = document.getElementById('mb-add');
   const removeButton = document.getElementById('mb-remove');
@@ -1157,7 +1159,6 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     listeningText.classList.remove('is-dictating');
     listeningText.textContent='';
     aiButton.classList.remove('is-visible');
-    speakButton.disabled=true;
   }
   function closeDetail(){
     detailOpen=false;
@@ -1215,11 +1216,11 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     detailView.classList.add('is-opening');
     canvas.style.opacity='0';
   }
-  function revealCanvasFromLayers(keepFrozen=false){
+  function revealCanvasFromLayers(keepFrozen=false,retainLayers=false){
     canvas.style.transition='none';
     canvas.classList.remove('is-layered');
     void canvas.offsetWidth;
-    bubbleTransitions.replaceChildren();
+    if(!retainLayers) bubbleTransitions.replaceChildren();
     bubbleLayersActive=keepFrozen;
     requestAnimationFrame(()=>canvas.style.removeProperty('transition'));
   }
@@ -1295,30 +1296,23 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     setFlowStart();
     await waitFlow(initialHold,token);
 
-    await Promise.all([1,2,4,8].map(async(index,order)=>{
-      await waitFlow(order*95,token);
-      await tweenFlow(460,token,p=>{
+    flowWeight[6]=0;
+    flowScale[6]=.2;
+    await tweenFlow(900,token,p=>{
+      for(const index of [1,2,4,8]){
         flowWeight[index]=1-p;
-        flowScale[index]=1-p*.88;
-      });
-    }));
-    if(token!==flowToken) return;
-    await waitFlow(1000,token);
-
-    await Promise.all([6].map(async(index,order)=>{
-      await waitFlow(order*130,token);
-      await tweenFlow(540,token,p=>{
-        flowWeight[index]=p;
-        flowScale[index]=.12+p*.88;
-      });
-    }));
+        flowScale[index]=1-p*.8;
+      }
+      flowWeight[6]=p;
+      flowScale[6]=.2+p*.8;
+    });
     if(token!==flowToken) return;
     await waitFlow(1000,token);
 
     const start4={x:flowX[3],y:flowY[3]};
     const start7={x:flowX[6],y:flowY[6]};
-    flowMerge=.8;
-    await tweenFlow(1120,token,(p,raw)=>{
+    flowMerge=.6;
+    await tweenFlow(1600,token,(p,raw)=>{
       flowX[3]=start4.x+(flowX[0]+42-start4.x)*p;
       flowY[3]=start4.y+(flowY[0]-24-start4.y)*p;
       flowX[6]=start7.x+(flowX[0]-38-start7.x)*p;
@@ -1402,9 +1396,9 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     if(token!==flowToken) return;
     listeningText.textContent='';
     listeningLayer.classList.add('is-visible');
-    await waitFlow(700,token);
+    await waitFlow(500,token);
     if(token!==flowToken) return;
-    speakButton.disabled=false;
+    await speakAIFlow();
   }
 
   async function typeDictation(token){
@@ -1433,7 +1427,6 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     if(preFlowState!=='listening') return;
     const token=flowToken;
     preFlowState='dictating';
-    speakButton.disabled=true;
     startButton.disabled=true;
     playButton.disabled=true;
     if(!await typeDictation(token)) return;
@@ -1448,7 +1441,14 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     });
     await waitFlow(360,token);
     if(token!==flowToken) return;
-    revealCanvasFromLayers(true);
+    revealCanvasFromLayers(true,true);
+    Array.from(bubbleTransitions.children).forEach(layer=>{
+      layer.style.transitionDelay='0ms';
+      layer.classList.add('is-handoff');
+    });
+    await waitFlow(150,token);
+    if(token!==flowToken) return;
+    bubbleTransitions.replaceChildren();
     listeningText.classList.remove('is-dictating');
     listeningText.textContent='';
     preFlowState='handoff';
@@ -1551,7 +1551,6 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     enterListening();
   });
   startButton.addEventListener('click', startAIFlow);
-  speakButton.addEventListener('click', speakAIFlow);
   endButton.addEventListener('click', cancelFlow);
   playButton.addEventListener('click', ()=>{
     resetListeningVisuals();
