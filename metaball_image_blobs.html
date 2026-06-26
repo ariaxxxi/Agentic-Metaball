@@ -66,6 +66,44 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   overflow:visible;
   pointer-events:none;
 }
+#mb-grid-extra{
+  position:absolute;
+  z-index:2;
+  inset:0;
+  overflow:visible;
+  pointer-events:none;
+}
+.grid-extra-bubble{
+  position:absolute;
+  display:block;
+  overflow:hidden;
+  border-radius:50%;
+  background:#d8d8d8;
+  opacity:0;
+  transform:translate(var(--from-x,0),var(--from-y,0)) scale(.72);
+  transform-origin:center;
+  transition:
+    opacity .72s ease,
+    transform .9s cubic-bezier(.35,.23,.13,.98);
+  will-change:opacity,transform;
+}
+.grid-extra-bubble.is-visible{
+  opacity:1;
+  transform:translate(0,0) scale(1);
+}
+.grid-extra-bubble.is-leaving{
+  opacity:0;
+  transform:translate(var(--from-x,0),var(--from-y,0)) scale(.76);
+  transition:
+    opacity .42s ease,
+    transform .48s cubic-bezier(.35,.23,.13,.98);
+}
+.grid-extra-bubble img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
 .bubble-transition-layer{
   position:absolute;
   display:block;
@@ -375,6 +413,11 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
 #mb-bar button:hover{transform:translateY(-1px);border-color:rgba(255,207,122,.56);background:rgba(255,207,122,.12)}
 #mb-bar button:active{transform:translateY(0)}
 #mb-bar button:disabled{opacity:.38;pointer-events:none}
+#mb-grid-toggle[aria-pressed="true"]{
+  border-color:rgba(255,255,255,.7);
+  background:#fff;
+  color:#16161d;
+}
 #mb-end:not(:disabled){
   border-color:rgba(255,118,118,.45);
   background:rgba(255,82,82,.1);
@@ -559,6 +602,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     <div id="mb-wrap">
       <canvas id="mb-canvas"></canvas>
       <div id="mb-bubble-transitions" aria-hidden="true"></div>
+      <div id="mb-grid-extra" aria-hidden="true"></div>
       <div id="mb-listening" aria-live="polite">
         <span class="listen-blob one"></span>
         <span class="listen-blob two"></span>
@@ -592,6 +636,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
 
     <div id="mb-bar">
       <button id="mb-start" aria-label="Start the AI flow">Start</button>
+      <button id="mb-grid-toggle" aria-label="Toggle bubble grid layout" aria-pressed="false" disabled>Grid</button>
       <button id="mb-play" aria-label="Play bubble animation">Play</button>
       <button id="mb-end" aria-label="End the active animation" disabled>End</button>
       <button id="mb-add" aria-label="Add a bubble">+ Add</button>
@@ -1166,17 +1211,33 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   const mergeFloatBubbles = new Set([0,3,6]);
   const playButton = document.getElementById('mb-play');
   const startButton = document.getElementById('mb-start');
+  const gridButton = document.getElementById('mb-grid-toggle');
   const endButton = document.getElementById('mb-end');
   const addButton = document.getElementById('mb-add');
   const removeButton = document.getElementById('mb-remove');
   const aiButton = document.getElementById('mb-ai');
   const bubbleTransitions = document.getElementById('mb-bubble-transitions');
+  const gridExtraLayer = document.getElementById('mb-grid-extra');
   const detailView = document.getElementById('mb-detail');
   const detailShared = document.getElementById('mb-detail-shared');
   const detailAvatar = document.getElementById('mb-detail-avatar');
   const listeningLayer = document.getElementById('mb-listening');
   const listeningText = document.getElementById('mb-listening-text');
   let preFlowState = 'idle', bubbleLayersActive=false, detailReady=false, detailOpen=false;
+  let gridActive=false, gridSnapshot=null, gridFloatSnapshot=1;
+  const extraBubbleAssets = [
+    'assets/bubbles/image 3187.png',
+    'assets/bubbles/image 3189.png',
+    'assets/bubbles/image 3190.png',
+    'assets/bubbles/image 3192.png',
+    'assets/bubbles/image 3193.png',
+    'assets/bubbles/image 3194.png',
+    'assets/bubbles/image 3195.png',
+    'assets/bubbles/image 3196.png',
+    'assets/bubbles/image 3197.png',
+    'assets/bubbles/image 3198.png',
+    'assets/bubbles/image 3199.png'
+  ];
 
   function flowEase(value){
     const x1=.35, y1=.23, x2=.13, y2=.98;
@@ -1212,6 +1273,70 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
       requestAnimationFrame(tick);
     });
   }
+  function getGridLayout(total){
+    const columnsCount=3;
+    const rowsCount=Math.ceil(total/columnsCount);
+    const gap=W*.3;
+    const radius=Math.min(48,(gap-24)/2);
+    const columns=[W*.5-gap,W*.5,W*.5+gap];
+    const firstY=H*.5-((rowsCount-1)*gap)/2;
+    const positions=[];
+    for(let i=0;i<total;i++){
+      positions.push({
+        x:columns[i%columnsCount],
+        y:firstY+Math.floor(i/columnsCount)*gap,
+        column:i%columnsCount,
+        row:Math.floor(i/columnsCount)
+      });
+    }
+    return {positions,radius,gap};
+  }
+  function showGridExtraBubbles(layout, essentialCount){
+    gridExtraLayer.replaceChildren();
+    extraBubbleAssets.forEach((src,assetIndex)=>{
+      const position=layout.positions[essentialCount+assetIndex];
+      if(!position) return;
+      const size=layout.radius*2;
+      const bubble=document.createElement('span');
+      const img=document.createElement('img');
+      const vectorX=position.x-W*.5;
+      const vectorY=position.y-H*.5;
+      const distance=Math.max(1,Math.hypot(vectorX,vectorY));
+      const travel=Math.max(90,layout.gap*.88);
+      const fromX=(vectorX/distance)*travel;
+      const fromY=(vectorY/distance)*travel;
+      bubble.className='grid-extra-bubble';
+      bubble.style.width=size+'px';
+      bubble.style.height=size+'px';
+      bubble.style.left=(position.x-layout.radius)+'px';
+      bubble.style.top=(position.y-layout.radius)+'px';
+      bubble.style.setProperty('--from-x',fromX.toFixed(2)+'px');
+      bubble.style.setProperty('--from-y',fromY.toFixed(2)+'px');
+      bubble.style.transitionDelay=Math.min(assetIndex*34,260)+'ms';
+      img.src=src;
+      img.alt='';
+      bubble.appendChild(img);
+      gridExtraLayer.appendChild(bubble);
+    });
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      gridExtraLayer.querySelectorAll('.grid-extra-bubble').forEach(bubble=>bubble.classList.add('is-visible'));
+    }));
+  }
+  function hideGridExtraBubbles(token){
+    const bubbles=Array.from(gridExtraLayer.querySelectorAll('.grid-extra-bubble'));
+    if(!bubbles.length) return Promise.resolve();
+    bubbles.forEach(bubble=>{
+      bubble.style.transitionDelay='0ms';
+      bubble.classList.remove('is-visible');
+      bubble.classList.add('is-leaving');
+    });
+    return waitFlow(520,token).then(()=>{
+      if(token===flowToken) gridExtraLayer.replaceChildren();
+    });
+  }
+  function clearGridExtraBubbles(){
+    gridExtraLayer.replaceChildren();
+  }
   function cancelFlow(){
     flowToken++;
     flowOverride=false;
@@ -1220,6 +1345,12 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     swapMix=0;
     flowFloatMix=1;
     detailReady=false;
+    gridActive=false;
+    gridSnapshot=null;
+    gridFloatSnapshot=1;
+    clearGridExtraBubbles();
+    gridButton.disabled=true;
+    gridButton.setAttribute('aria-pressed','false');
     wrap.classList.remove('detail-ready');
     resetListeningVisuals();
     preFlowState='idle';
@@ -1231,6 +1362,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   }
   function lockFlowControls(){
     startButton.disabled=true;
+    gridButton.disabled=true;
     playButton.disabled=true;
     endButton.disabled=false;
     addButton.disabled=true;
@@ -1371,6 +1503,12 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   }
   async function runFlow(initialHold=2000){
     const token=++flowToken;
+    gridActive=false;
+    gridSnapshot=null;
+    gridFloatSnapshot=1;
+    clearGridExtraBubbles();
+    gridButton.disabled=true;
+    gridButton.setAttribute('aria-pressed','false');
     detailReady=false;
     wrap.classList.remove('detail-ready');
     flowRunning=true;
@@ -1464,10 +1602,75 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     flowRunning=false;
     preFlowState='ready';
     aiButton.classList.add('is-visible');
+    gridButton.disabled=false;
+  }
+
+  async function toggleGridLayout(){
+    if(preFlowState!=='ready' || flowRunning || detailOpen) return;
+    const token=flowToken;
+    const visible=[0,1,2,3,4,8];
+    const layout=getGridLayout(visible.length+extraBubbleAssets.length);
+    gridButton.disabled=true;
+    flowRunning=true;
+
+    if(!gridActive){
+      gridSnapshot=visible.map(index=>({
+        index:index,
+        x:flowX[index],
+        y:flowY[index],
+        scale:flowScale[index]
+      }));
+      gridFloatSnapshot=flowFloatMix;
+      const starts=gridSnapshot.map(item=>({...item}));
+      aiButton.classList.remove('is-visible');
+      gridButton.setAttribute('aria-pressed','true');
+      showGridExtraBubbles(layout,visible.length);
+      await tweenFlow(900,token,p=>{
+        flowFloatMix=gridFloatSnapshot*(1-p);
+        starts.forEach((start,position)=>{
+          const target=layout.positions[position];
+          flowX[start.index]=start.x+(target.x-start.x)*p;
+          flowY[start.index]=start.y+(target.y-start.y)*p;
+          const targetScale=layout.radius/balls[start.index].r;
+          flowScale[start.index]=start.scale+(targetScale-start.scale)*p;
+        });
+      });
+      if(token!==flowToken) return;
+      gridActive=true;
+    }else{
+      const starts=gridSnapshot.map(item=>({
+        index:item.index,
+        x:flowX[item.index],
+        y:flowY[item.index],
+        scale:flowScale[item.index],
+        targetX:item.x,
+        targetY:item.y,
+        targetScale:item.scale
+      }));
+      const hideExtras=hideGridExtraBubbles(token);
+      await tweenFlow(900,token,p=>{
+        starts.forEach(start=>{
+          flowX[start.index]=start.x+(start.targetX-start.x)*p;
+          flowY[start.index]=start.y+(start.targetY-start.y)*p;
+          flowScale[start.index]=start.scale+(start.targetScale-start.scale)*p;
+        });
+        flowFloatMix=gridFloatSnapshot*p;
+      });
+      await hideExtras;
+      if(token!==flowToken) return;
+      gridActive=false;
+      gridSnapshot=null;
+      gridFloatSnapshot=1;
+      gridButton.setAttribute('aria-pressed','false');
+      aiButton.classList.add('is-visible');
+    }
+
+    flowRunning=false;
+    gridButton.disabled=false;
   }
 
   async function enterListening(){
-    if(preFlowState!=='ready') return;
+    if(preFlowState!=='ready' || gridActive) return;
     const token=flowToken;
     preFlowState='listening';
     aiButton.classList.remove('is-visible');
@@ -1634,6 +1837,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     enterListening();
   });
   startButton.addEventListener('click', startAIFlow);
+  gridButton.addEventListener('click', toggleGridLayout);
   endButton.addEventListener('click', cancelFlow);
   playButton.addEventListener('click', ()=>{
     resetListeningVisuals();
