@@ -14,6 +14,11 @@
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;background:var(--mb-bg);color:var(--mb-ink)}
 body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
+#mb-shell,#mb-stage,#mb-wrap,#mb-canvas{
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  user-select:none;
+}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
 #mb-shell{
   position:relative;
@@ -77,8 +82,8 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   position:absolute;
   display:block;
   overflow:hidden;
-  border-radius:50%;
-  background:#d8d8d8;
+  border-radius:0;
+  background:transparent;
   opacity:0;
   transform:translate(var(--from-x,0),var(--from-y,0)) scale(.72);
   transform-origin:center;
@@ -103,6 +108,19 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   width:100%;
   height:100%;
   object-fit:cover;
+}
+#mb-grid-extra.is-wobbly .grid-extra-bubble.is-visible{
+  animation:grid-extra-wobble .56s ease-in-out infinite alternate;
+}
+#mb-grid-extra.is-wobbly .grid-extra-bubble.is-visible:nth-child(3n+2){
+  animation-delay:-.18s;
+}
+#mb-grid-extra.is-wobbly .grid-extra-bubble.is-visible:nth-child(3n){
+  animation-delay:-.34s;
+}
+@keyframes grid-extra-wobble{
+  from{transform:translate(-1.8px,1.2px) scale(.91) rotate(-1.2deg)}
+  to{transform:translate(1.6px,-1.4px) scale(.93) rotate(1.1deg)}
 }
 .bubble-transition-layer{
   position:absolute;
@@ -595,6 +613,46 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   #mb-grid{grid-template-columns:1fr}
   #mb-bar{align-items:flex-start;flex-direction:column}
 }
+@media (max-width: 700px), (hover: none) and (pointer: coarse){
+  html,body{
+    width:100%;
+    height:100%;
+    min-height:100%;
+    overflow:hidden;
+    background:#000;
+  }
+  #mb-shell{
+    display:block;
+    width:100vw;
+    height:100svh;
+    min-height:100svh;
+    overflow:hidden;
+  }
+  #mb-stage{
+    width:100vw;
+    height:100svh;
+    min-height:100svh;
+    padding:0;
+    overflow:hidden;
+  }
+  #mb-wrap{
+    width:402px;
+    height:874px;
+    min-width:0;
+    min-height:0;
+    max-width:none;
+    aspect-ratio:402 / 874;
+    box-shadow:none;
+    transform:scale(var(--mobile-scale,1));
+    transform-origin:center;
+  }
+  #mb-ai{
+    bottom:var(--mobile-ai-bottom,28px);
+  }
+  #mb-panel{
+    display:none;
+  }
+}
 </style>
 
 <main id="mb-shell">
@@ -726,6 +784,17 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     "<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256'><defs><linearGradient id='a' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%23cdeeff'/><stop offset='.45' stop-color='%238cc657'/><stop offset='1' stop-color='%231f4417'/></linearGradient></defs><rect width='256' height='256' fill='url(%23a)'/><circle cx='190' cy='64' r='26' fill='%23fff3c4'/><ellipse cx='80' cy='210' rx='120' ry='60' fill='%23356b22'/><ellipse cx='200' cy='230' rx='110' ry='55' fill='%23234d18'/></svg>",
     "<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256'><defs><radialGradient id='a' cx='.5' cy='.68' r='.85'><stop offset='0' stop-color='%232ee6b0'/><stop offset='.5' stop-color='%232a5fd0'/><stop offset='1' stop-color='%230a0e33'/></radialGradient></defs><rect width='256' height='256' fill='url(%23a)'/><path d='M0 150 Q70 90 130 140 T256 120' stroke='%237ff0d2' stroke-width='10' fill='none' opacity='.5'/></svg>",
     "<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256'><defs><radialGradient id='a' cx='.5' cy='.5' r='.72'><stop offset='0' stop-color='%23ffd24d'/><stop offset='.45' stop-color='%23ff5a3c'/><stop offset='1' stop-color='%233a0d2e'/></radialGradient></defs><rect width='256' height='256' fill='url(%23a)'/><circle cx='100' cy='110' r='20' fill='%23ffe9a3' opacity='.6'/></svg>"
+  ];
+  const defaultBubbleAssets = [
+    'assets/bubbles/bubble 1.png',
+    'assets/bubbles/bubble 2.png',
+    'assets/bubbles/bubble 3.png',
+    'assets/bubbles/bubble 4.png',
+    'assets/bubbles/bubble 5.png',
+    'assets/bubbles/bubble 6.png',
+    null,
+    'assets/bubbles/bubble 8.png',
+    'assets/bubbles/bubble 9.png'
   ];
 
   const vsrc = 'attribute vec2 a; void main(){ gl_Position = vec4(a,0.0,1.0); }';
@@ -915,85 +984,6 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     });
   }
 
-  let bubble8AvatarSrc='';
-  function uploadCanvasTexture(unit, source, label){
-    gl.activeTexture(gl.TEXTURE0+unit);
-    gl.bindTexture(gl.TEXTURE_2D,textures[unit]);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
-    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);
-    document.getElementById('preview-'+unit).src=source.toDataURL('image/jpeg',.9);
-    document.getElementById('image-state-'+unit).textContent=label;
-  }
-
-  function buildBubble8Composite(){
-    imageLoadVersion[7]++;
-    const image=new Image();
-    image.onload=()=>{
-      const size=512;
-      const canvas8=document.createElement('canvas');
-      canvas8.width=size;
-      canvas8.height=size;
-      const context=canvas8.getContext('2d');
-      const sourceScale=Math.max(size/image.naturalWidth,size/image.naturalHeight);
-      const sourceWidth=image.naturalWidth*sourceScale;
-      const sourceHeight=image.naturalHeight*sourceScale;
-      const sourceX=(size-sourceWidth)/2;
-      const sourceY=(size-sourceHeight)/2;
-
-      context.save();
-      context.filter='blur(18px)';
-      context.drawImage(image,sourceX-18,sourceY-18,sourceWidth+36,sourceHeight+36);
-      context.restore();
-      const shade=context.createLinearGradient(0,0,0,size);
-      shade.addColorStop(0,'rgba(38,31,28,.18)');
-      shade.addColorStop(.5,'rgba(92,44,20,.08)');
-      shade.addColorStop(1,'rgba(73,30,9,.42)');
-      context.fillStyle=shade;
-      context.fillRect(0,0,size,size);
-
-      const avatar=document.createElement('canvas');
-      avatar.width=72;
-      avatar.height=72;
-      const avatarContext=avatar.getContext('2d');
-      avatarContext.beginPath();
-      avatarContext.arc(36,36,34,0,Math.PI*2);
-      avatarContext.clip();
-      avatarContext.drawImage(image,65,330,195,195,0,0,72,72);
-      bubble8AvatarSrc=avatar.toDataURL('image/png');
-
-      context.save();
-      context.beginPath();
-      context.arc(147,124,29,0,Math.PI*2);
-      context.clip();
-      context.drawImage(avatar,118,95,58,58);
-      context.restore();
-      context.strokeStyle='rgba(255,255,255,.92)';
-      context.lineWidth=3;
-      context.beginPath();
-      context.arc(147,124,29,0,Math.PI*2);
-      context.stroke();
-
-      context.textAlign='center';
-      context.fillStyle='#fff';
-      context.font='700 43px "DM Sans", sans-serif';
-      context.fillText('Give Nori',302,139);
-      context.fillStyle='rgba(255,255,255,.72)';
-      context.font='500 39px "DM Sans", sans-serif';
-      context.fillText('a rounded face',256,205);
-      context.fillStyle='#fff';
-      context.font='700 40px "DM Sans", sans-serif';
-      context.fillText('like teddy-bear',240,269);
-
-      context.fillStyle='rgba(255,255,255,.65)';
-      context.font='500 30px "DM Sans", sans-serif';
-      context.fillText('Sun Jun 21',256,354);
-      context.fillText('11:00 am - 12:30 pm',256,395);
-      context.fillText('3 inspo ready',256,436);
-      uploadCanvasTexture(7,canvas8,'Generated detail card');
-    };
-    image.src='bg-main1.png?bubble8-revision=2';
-  }
-
   function applyProgressiveBlur(source){
     const size=source.width;
     const levels=[];
@@ -1086,6 +1076,14 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     };
     img.src = src;
   }
+  function loadDefaultBubbleImage(unit){
+    const asset = defaultBubbleAssets[unit];
+    if(asset){
+      loadImageSource(unit, asset, 'Default: '+asset.split('/').pop());
+    }else{
+      loadImageSource(unit, 'data:image/svg+xml;charset=utf-8,' + SCENES[unit%SCENES.length], 'Default image');
+    }
+  }
 
   function loadImageBlob(unit, blob, label, persist){
     if(!blob || !blob.type.startsWith('image/')) return false;
@@ -1110,17 +1108,12 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.uniform1i(gl.getUniformLocation(prog,'u_tex['+i+']'), i);
-    if(i!==7){
-      loadImageSource(i, 'data:image/svg+xml;charset=utf-8,' + SCENES[i%SCENES.length], 'Default image');
-    }
+    loadDefaultBubbleImage(i);
   }
   restoreBubbleImages().catch(()=>{
     const hint = document.getElementById('mb-clipboard-hint');
     if(hint) hint.textContent = 'Saved images are unavailable in this browser.';
   });
-  buildBubble8Composite();
-  document.fonts.ready.then(buildBubble8Composite);
-
   function hex(h){ h=h.replace('#',''); return [parseInt(h.substr(0,2),16)/255, parseInt(h.substr(2,2),16)/255, parseInt(h.substr(4,2),16)/255]; }
 
   const radii = initialRadii.slice(0, MAX_BALLS);
@@ -1184,9 +1177,22 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   function saveRadii(){
     localStorage.setItem('metaball-radii',JSON.stringify(radii));
   }
+  const mobileFullscreenQuery = matchMedia('(max-width: 700px), (hover: none) and (pointer: coarse)');
   function resize(){
     const oldW=W, oldH=H;
     dpr = Math.min(window.devicePixelRatio||1, 2);
+    const mobileFullScreen = mobileFullscreenQuery.matches;
+    if(mobileFullScreen){
+      const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      const scale = Math.max(window.innerWidth/402, viewportHeight/874);
+      wrap.style.setProperty('--mobile-scale', scale.toFixed(4));
+      const extraHeight = Math.max(0, 874*scale-viewportHeight);
+      const safeBottom = 46;
+      wrap.style.setProperty('--mobile-ai-bottom', ((extraHeight/2+safeBottom)/scale).toFixed(2)+'px');
+    }else{
+      wrap.style.removeProperty('--mobile-scale');
+      wrap.style.removeProperty('--mobile-ai-bottom');
+    }
     W = wrap.clientWidth; H = wrap.clientHeight;
     canvas.width = Math.round(W*dpr); canvas.height = Math.round(H*dpr);
     gl.viewport(0,0,canvas.width,canvas.height);
@@ -1203,11 +1209,22 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   }
 
   let drag=-1, panning=false, offX=0, offY=0, panX=0, panY=0, activeBubble=0;
+  let dragTargetX=0, dragTargetY=0;
+  let panVelX=0, panVelY=0, panLastTime=0;
+  let gestureStartX=0, gestureStartY=0, gestureMoved=false, gestureBlank=false, longPressTimer=0, longPressArmed=false, wobbleActivatedThisGesture=false;
   let flowOverride=false, flowRunning=false, flowToken=0, flowMerge=0, swapMix=0, flowFloatMix=1;
   const flowWeight = Array(MAX_BALLS).fill(0);
   const flowScale = Array(MAX_BALLS).fill(1);
   const flowX = Array(MAX_BALLS).fill(0);
   const flowY = Array(MAX_BALLS).fill(0);
+  const panOffsetX = Array(MAX_BALLS).fill(0);
+  const panOffsetY = Array(MAX_BALLS).fill(0);
+  const panTargetX = Array(MAX_BALLS).fill(0);
+  const panTargetY = Array(MAX_BALLS).fill(0);
+  const panInfluence = Array(MAX_BALLS).fill(1);
+  const edgeVisual = Array.from({length:MAX_BALLS},()=>({scale:1}));
+  const viewport = {x:0,y:0,z:1,tx:0,ty:0,tz:1};
+  let wobbleActive=false, wobbleMix=0;
   const mergeFloatBubbles = new Set([0,3,6]);
   const playButton = document.getElementById('mb-play');
   const startButton = document.getElementById('mb-start');
@@ -1224,7 +1241,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   const listeningLayer = document.getElementById('mb-listening');
   const listeningText = document.getElementById('mb-listening-text');
   let preFlowState = 'idle', bubbleLayersActive=false, detailReady=false, detailOpen=false;
-  let gridActive=false, gridSnapshot=null, gridFloatSnapshot=1;
+  let gridActive=false, gridSnapshot=null, gridFloatSnapshot=1, gridTransitioning=false;
   const extraBubbleAssets = [
     'assets/bubbles/image 3187.png',
     'assets/bubbles/image 3189.png',
@@ -1325,17 +1342,89 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   function hideGridExtraBubbles(token){
     const bubbles=Array.from(gridExtraLayer.querySelectorAll('.grid-extra-bubble'));
     if(!bubbles.length) return Promise.resolve();
+    gridExtraLayer.classList.remove('is-wobbly');
     bubbles.forEach(bubble=>{
       bubble.style.transitionDelay='0ms';
-      bubble.classList.remove('is-visible');
-      bubble.classList.add('is-leaving');
+      bubble.style.animation='none';
     });
-    return waitFlow(520,token).then(()=>{
-      if(token===flowToken) gridExtraLayer.replaceChildren();
+    void gridExtraLayer.offsetWidth;
+    return new Promise(resolve=>{
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        if(token!==flowToken) return resolve();
+        bubbles.forEach(bubble=>{
+          bubble.classList.remove('is-visible');
+          bubble.classList.add('is-leaving');
+        });
+        waitFlow(560,token).then(()=>{
+          if(token===flowToken) gridExtraLayer.replaceChildren();
+          resolve();
+        });
+      }));
     });
   }
   function clearGridExtraBubbles(){
     gridExtraLayer.replaceChildren();
+  }
+  function clampViewportTarget(){
+    const limitX=W*.72*viewport.tz;
+    const limitY=H*.72*viewport.tz;
+    viewport.tx=Math.max(-limitX,Math.min(limitX,viewport.tx));
+    viewport.ty=Math.max(-limitY,Math.min(limitY,viewport.ty));
+  }
+  function clampPanTargets(){
+    const limitX=W*.58;
+    const limitY=H*.58;
+    for(let i=0;i<MAX_BALLS;i++){
+      panTargetX[i]=Math.max(-limitX,Math.min(limitX,panTargetX[i]));
+      panTargetY[i]=Math.max(-limitY,Math.min(limitY,panTargetY[i]));
+    }
+  }
+  function resetPanOffsets(){
+    for(let i=0;i<MAX_BALLS;i++){
+      panOffsetX[i]=0;
+      panOffsetY[i]=0;
+      panTargetX[i]=0;
+      panTargetY[i]=0;
+      panInfluence[i]=1;
+    }
+  }
+  function setPanInfluence(origin){
+    const maxDistance=Math.hypot(W,H)*.58;
+    for(let i=0;i<MAX_BALLS;i++){
+      const b=balls[i];
+      const visible=flowOverride ? flowWeight[i] : (activeSlots[i] ? 1 : 0);
+      if(!b || visible<=.02){
+        panInfluence[i]=.42;
+        continue;
+      }
+      const distance=Math.max(0,Math.hypot(origin.x-b.dx,origin.y-b.dy)-b.r*.45);
+      const t=Math.max(0,Math.min(1,distance/maxDistance));
+      const eased=t*t*(3-2*t);
+      panInfluence[i]=1-eased*.64;
+    }
+  }
+  function clearLongPress(){
+    if(longPressTimer){
+      clearTimeout(longPressTimer);
+      longPressTimer=0;
+    }
+    longPressArmed=false;
+  }
+  function setWobble(active){
+    wobbleActive=active;
+  }
+  function resetViewport(){
+    viewport.x=0;
+    viewport.y=0;
+    viewport.z=1;
+    viewport.tx=0;
+    viewport.ty=0;
+    viewport.tz=1;
+    panVelX=0;
+    panVelY=0;
+    resetPanOffsets();
+    setWobble(false);
+    clearLongPress();
   }
   function cancelFlow(){
     flowToken++;
@@ -1348,7 +1437,9 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     gridActive=false;
     gridSnapshot=null;
     gridFloatSnapshot=1;
+    gridTransitioning=false;
     clearGridExtraBubbles();
+    resetViewport();
     gridButton.disabled=true;
     gridButton.setAttribute('aria-pressed','false');
     wrap.classList.remove('detail-ready');
@@ -1391,7 +1482,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     const radius=b.r*flowScale[0];
     const diameter=Math.ceil(radius*2);
     detailView.style.backgroundImage='url("bg-main1.png")';
-    detailAvatar.src=bubble8AvatarSrc || document.getElementById('preview-7').src;
+    detailAvatar.src=document.getElementById('preview-7').src;
     detailView.style.setProperty('--detail-x',b.dx+'px');
     detailView.style.setProperty('--detail-y',b.dy+'px');
     detailView.style.setProperty('--detail-radius',radius+'px');
@@ -1506,6 +1597,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     gridActive=false;
     gridSnapshot=null;
     gridFloatSnapshot=1;
+    gridTransitioning=false;
     clearGridExtraBubbles();
     gridButton.disabled=true;
     gridButton.setAttribute('aria-pressed','false');
@@ -1610,6 +1702,10 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     const token=flowToken;
     const visible=[0,1,2,3,4,8];
     const layout=getGridLayout(visible.length+extraBubbleAssets.length);
+    setWobble(false);
+    clearLongPress();
+    gridTransitioning=true;
+    gridExtraLayer.classList.remove('is-wobbly');
     gridButton.disabled=true;
     flowRunning=true;
 
@@ -1624,6 +1720,10 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
       const starts=gridSnapshot.map(item=>({...item}));
       aiButton.classList.remove('is-visible');
       gridButton.setAttribute('aria-pressed','true');
+      viewport.tx=0;
+      viewport.ty=0;
+      viewport.tz=1;
+      resetPanOffsets();
       showGridExtraBubbles(layout,visible.length);
       await tweenFlow(900,token,p=>{
         flowFloatMix=gridFloatSnapshot*(1-p);
@@ -1635,8 +1735,12 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
           flowScale[start.index]=start.scale+(targetScale-start.scale)*p;
         });
       });
-      if(token!==flowToken) return;
+      if(token!==flowToken){
+        gridTransitioning=false;
+        return;
+      }
       gridActive=true;
+      gridTransitioning=false;
     }else{
       const starts=gridSnapshot.map(item=>({
         index:item.index,
@@ -1657,10 +1761,14 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
         flowFloatMix=gridFloatSnapshot*p;
       });
       await hideExtras;
-      if(token!==flowToken) return;
+      if(token!==flowToken){
+        gridTransitioning=false;
+        return;
+      }
       gridActive=false;
       gridSnapshot=null;
       gridFloatSnapshot=1;
+      gridTransitioning=false;
       gridButton.setAttribute('aria-pressed','false');
       aiButton.classList.add('is-visible');
     }
@@ -1762,18 +1870,78 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     document.getElementById('mb-add').disabled = count>=MAX_BALLS;
     document.getElementById('mb-remove').disabled = count<=1;
   }
-  function ptr(e){ const r=canvas.getBoundingClientRect(); return {x:e.clientX-r.left, y:e.clientY-r.top}; }
+  function ptr(e){
+    const r=canvas.getBoundingClientRect();
+    return {
+      x:(e.clientX-r.left)*(W/r.width),
+      y:(e.clientY-r.top)*(H/r.height)
+    };
+  }
+  function flowBubbleAt(point){
+    for(let i=MAX_BALLS-1;i>=0;i--){
+      const visible=flowOverride ? flowWeight[i] : (activeSlots[i] ? 1 : 0);
+      if(visible<=.02) continue;
+      const b=balls[i];
+      const scale=(flowOverride ? flowScale[i] : 1)*viewport.z;
+      const radius=b.r*scale+14;
+      if(Math.hypot(point.x-b.dx,point.y-b.dy)<=radius) return i;
+    }
+    return -1;
+  }
+  function armBlankLongPress(){
+    clearLongPress();
+    if(preFlowState!=='ready' || flowRunning || detailOpen || !gestureBlank) return;
+    longPressArmed=true;
+    wobbleActivatedThisGesture=false;
+    longPressTimer=setTimeout(()=>{
+      if(longPressArmed && !gestureMoved){
+        setWobble(true);
+        wobbleActivatedThisGesture=true;
+      }
+    },480);
+  }
   wrap.addEventListener('pointerdown', function(e){
     const p = ptr(e);
     if(flowOverride){
-      if(detailReady && !detailOpen){
+      const flowPick = (!gridActive && !wobbleActive && !detailOpen) ? flowBubbleAt(p) : -1;
+      if(detailReady && flowPick===0 && !detailOpen && !gridActive && !wobbleActive){
         const b=balls[0];
         const distance=Math.hypot(p.x-b.dx,p.y-b.dy);
-        if(distance<=b.r+14){
+        if(distance<=b.r+14 && e.pointerType==='mouse' && e.detail>1){
           openBubbleDetail();
           e.preventDefault();
+          return;
         }
       }
+      if(flowPick>=0){
+        drag=flowPick;
+        selectBubble(flowPick);
+        offX=p.x-flowX[flowPick];
+        offY=p.y-flowY[flowPick];
+        dragTargetX=flowX[flowPick];
+        dragTargetY=flowY[flowPick];
+        gestureStartX=p.x;
+        gestureStartY=p.y;
+        gestureMoved=false;
+        gestureBlank=false;
+        wrap.setPointerCapture(e.pointerId);
+        e.preventDefault();
+        return;
+      }
+      panning=true;
+      panX=p.x;
+      panY=p.y;
+      panLastTime=performance.now();
+      panVelX=0;
+      panVelY=0;
+      gestureStartX=p.x;
+      gestureStartY=p.y;
+      gestureMoved=false;
+      gestureBlank=flowBubbleAt(p)<0;
+      setPanInfluence(p);
+      armBlankLongPress();
+      wrap.setPointerCapture(e.pointerId);
+      e.preventDefault();
       return;
     }
     let pick=-1, best=1e9;
@@ -1787,10 +1955,19 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
       selectBubble(pick);
       offX=p.x-balls[pick].hx;
       offY=p.y-balls[pick].hy;
+      dragTargetX=balls[pick].hx;
+      dragTargetY=balls[pick].hy;
     }else{
       panning=true;
       panX=p.x;
       panY=p.y;
+      panLastTime=performance.now();
+      panVelX=0;
+      panVelY=0;
+      gestureStartX=p.x;
+      gestureStartY=p.y;
+      gestureMoved=false;
+      gestureBlank=true;
     }
     wrap.setPointerCapture(e.pointerId);
     e.preventDefault();
@@ -1798,13 +1975,54 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   wrap.addEventListener('pointermove', function(e){
     const p=ptr(e);
     if(drag>=0){
-      const b=balls[drag];
-      b.hx=p.x-offX;
-      b.hy=p.y-offY;
-      clampBall(b);
+      dragTargetX=p.x-offX;
+      dragTargetY=p.y-offY;
+      gestureMoved=true;
+      if(longPressArmed) clearLongPress();
       return;
     }
     if(!panning) return;
+    const totalDx=p.x-gestureStartX;
+    const totalDy=p.y-gestureStartY;
+    if(Math.hypot(totalDx,totalDy)>8){
+      gestureMoved=true;
+      if(longPressArmed) clearLongPress();
+    }
+    if(flowOverride){
+      if(wobbleActive && totalDy<-46 && Math.abs(totalDx)<140){
+        clearLongPress();
+        panning=false;
+        toggleGridLayout();
+        return;
+      }
+      if(gridActive){
+        panX=p.x;
+        panY=p.y;
+        panLastTime=performance.now();
+        panVelX=0;
+        panVelY=0;
+        return;
+      }
+      const now=performance.now();
+      const dt=Math.max(16,now-panLastTime);
+      const rawDx=p.x-panX;
+      const rawDy=p.y-panY;
+      const speed=Math.hypot(rawDx,rawDy)/dt;
+      const resistance=.18+Math.min(.34,speed*1.2);
+      const dx=rawDx*resistance;
+      const dy=rawDy*resistance;
+      for(let i=0;i<MAX_BALLS;i++){
+        panTargetX[i]+=dx*panInfluence[i];
+        panTargetY[i]+=dy*panInfluence[i];
+      }
+      clampPanTargets();
+      panVelX=panVelX*.5+(rawDx/dt)*520*.5;
+      panVelY=panVelY*.5+(rawDy/dt)*520*.5;
+      panX=p.x;
+      panY=p.y;
+      panLastTime=now;
+      return;
+    }
     let dx=p.x-panX, dy=p.y-panY;
     let minDx=-Infinity, maxDx=Infinity, minDy=-Infinity, maxDy=Infinity;
     for(const b of balls){
@@ -1824,12 +2042,56 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     panY+=dy;
   });
   function release(){
+    clearLongPress();
+    if(flowOverride && panning && wobbleActive && gestureBlank && !gestureMoved){
+      if(!wobbleActivatedThisGesture) setWobble(false);
+    }
+    wobbleActivatedThisGesture=false;
+    if(drag>=0){
+      if(flowOverride){
+        flowX[drag]=dragTargetX;
+        flowY[drag]=dragTargetY;
+        balls[drag].hx=dragTargetX;
+        balls[drag].hy=dragTargetY;
+        clampBall(balls[drag]);
+      }else{
+        const b=balls[drag];
+        b.hx=dragTargetX;
+        b.hy=dragTargetY;
+        clampBall(b);
+      }
+    }
+    if(flowOverride && panning && !gridActive){
+      for(let i=0;i<MAX_BALLS;i++){
+        panTargetX[i]+=panVelX*.48*panInfluence[i];
+        panTargetY[i]+=panVelY*.48*panInfluence[i];
+      }
+      clampPanTargets();
+    }
     if(drag>=0 || panning) savePositions();
     drag=-1;
     panning=false;
+    panVelX=0;
+    panVelY=0;
   }
   wrap.addEventListener('pointerup', release);
   wrap.addEventListener('pointercancel', release);
+  wrap.addEventListener('contextmenu', event=>event.preventDefault());
+  wrap.addEventListener('selectstart', event=>event.preventDefault());
+  wrap.addEventListener('wheel', event=>{
+    if(!flowOverride || preFlowState!=='ready' || flowRunning || detailOpen || gridActive) return;
+    event.preventDefault();
+    const p=ptr(event);
+    const oldZoom=viewport.tz;
+    const zoomFactor=Math.exp(-event.deltaY*.0016);
+    const nextZoom=Math.max(.72,Math.min(1.75,oldZoom*zoomFactor));
+    const beforeX=(p.x-W*.5-viewport.tx)/oldZoom;
+    const beforeY=(p.y-H*.5-viewport.ty)/oldZoom;
+    viewport.tz=nextZoom;
+    viewport.tx=p.x-W*.5-beforeX*nextZoom;
+    viewport.ty=p.y-H*.5-beforeY*nextZoom;
+    clampViewportTarget();
+  }, {passive:false});
   aiButton.addEventListener('pointerdown', event=>event.stopPropagation());
   detailView.addEventListener('pointerdown', event=>event.stopPropagation());
   aiButton.addEventListener('click', event=>{
@@ -1874,7 +2136,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     activeSlots[removed] = false;
     imageLoadVersion[removed]++;
     deleteBubbleImage(removed).catch(()=>{});
-    loadImageSource(removed, 'data:image/svg+xml;charset=utf-8,' + SCENES[removed%SCENES.length], 'Default image');
+    loadDefaultBubbleImage(removed);
     saveActiveSlots();
     syncBubbleControls();
     selectBubble(activeSlots.findIndex(Boolean));
@@ -1978,8 +2240,25 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
 
   function frame(now){
     const t = now*0.001;
+    viewport.x += (viewport.tx-viewport.x)*.095;
+    viewport.y += (viewport.ty-viewport.y)*.095;
+    viewport.z += (viewport.tz-viewport.z)*.14;
+    wobbleMix += ((wobbleActive ? 1 : 0)-wobbleMix)*.16;
+    gridExtraLayer.style.transformOrigin='50% 50%';
+    gridExtraLayer.style.transform='translate('+viewport.x.toFixed(2)+'px,'+viewport.y.toFixed(2)+'px) scale('+viewport.z.toFixed(4)+')';
+    gridExtraLayer.classList.toggle('is-wobbly', !gridTransitioning && wobbleMix>.08);
     for(let i=0;i<MAX_BALLS;i++){
       const b=balls[i];
+      panOffsetX[i] += (panTargetX[i]-panOffsetX[i])*.105;
+      panOffsetY[i] += (panTargetY[i]-panOffsetY[i])*.105;
+      if(i===drag && !flowOverride){
+        b.hx += (dragTargetX-b.hx)*.34;
+        b.hy += (dragTargetY-b.hy)*.34;
+        clampBall(b);
+      }else if(i===drag && flowOverride){
+        flowX[i] += (dragTargetX-flowX[i])*.34;
+        flowY[i] += (dragTargetY-flowY[i])*.34;
+      }
       const visible = flowOverride ? flowWeight[i] : (activeSlots[i] ? 1 : 0);
       if(visible<=0) continue;
       const x = flowOverride ? flowX[i] : b.hx;
@@ -1988,8 +2267,12 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
       const amp=flowOverride ? state.floatAmt*flowAmp : state.floatAmt;
       b.floatX=Math.sin(t*b.fx + b.phx)*amp;
       b.floatY=Math.cos(t*b.fy + b.phy)*amp;
-      b.dx = x + b.floatX;
-      b.dy = y + b.floatY;
+      const worldX = x + b.floatX;
+      const worldY = y + b.floatY;
+      const wobbleX = Math.sin(t*9.5+i*1.7)*2.2*wobbleMix;
+      const wobbleY = Math.cos(t*8.2+i*1.31)*1.8*wobbleMix;
+      b.dx = (worldX-W*.5)*viewport.z+W*.5+viewport.x+panOffsetX[i]+wobbleX;
+      b.dy = (worldY-H*.5)*viewport.z+H*.5+viewport.y+panOffsetY[i]+wobbleY;
     }
     gl.uniform2f(U.res, canvas.width, canvas.height);
     gl.uniform3fv(U.bg, state.bg);
@@ -1999,7 +2282,14 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     for(let i=0;i<MAX_BALLS;i++){
       const b=balls[i];
       const weight = flowOverride ? flowWeight[i] : (activeSlots[i] ? 1 : 0);
-      const scale = flowOverride ? flowScale[i] : 1;
+      const baseScale = flowOverride ? flowScale[i] : 1;
+      const edgeBand=86;
+      const edgeDistance=Math.min(b.dx,W-b.dx,b.dy,H-b.dy);
+      const edgeT=Math.max(0,Math.min(1,(edgeBand-edgeDistance)/edgeBand));
+      const targetEdgeScale=1-edgeT*.4;
+      edgeVisual[i].scale += (targetEdgeScale-edgeVisual[i].scale)*.18;
+      const wobbleScale=1-wobbleMix*.08+Math.sin(t*10.5+i*1.9)*.014*wobbleMix;
+      const scale = baseScale*viewport.z*edgeVisual[i].scale*wobbleScale;
       gl.uniform1f(U.active[i], weight);
       gl.uniform3f(U.balls[i], b.dx*dpr, (H-b.dy)*dpr, Math.max(1,b.r*scale)*dpr);
     }
@@ -2009,7 +2299,11 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
 
   if(window.ResizeObserver){ new ResizeObserver(resize).observe(wrap); }
   window.addEventListener('resize', resize);
+  if(window.visualViewport) window.visualViewport.addEventListener('resize', resize);
   resize();
   requestAnimationFrame(frame);
+  if(mobileFullscreenQuery.matches){
+    requestAnimationFrame(()=>startAIFlow());
+  }
 })();
 </script>
