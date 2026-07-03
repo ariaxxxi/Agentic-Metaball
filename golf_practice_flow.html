@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Golf Practice Flow</title>
+<style>
+:root{
+  --phone-w:402px;
+  --phone-h:874px;
+  --bg:url("golf-bubbles/golfBG.png");
+  --ink:#f6f6ee;
+  --muted:rgba(246,246,238,.72);
+  --glass:rgba(255,255,255,.2);
+  --deep:#17200f;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#090a08;color:var(--ink);font-family:"DM Sans","Avenir Next",ui-sans-serif,system-ui,sans-serif}
+body{display:grid;place-items:center;overflow:hidden}
+button{font:inherit;color:inherit}
+.phone{
+  position:relative;
+  width:min(var(--phone-w),100vw);
+  height:min(var(--phone-h),100vh);
+  aspect-ratio:402/874;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 48% 22%,rgba(255,255,255,.94),rgba(235,235,231,.92) 38%,rgba(206,206,202,.95) 100%);
+  isolation:isolate;
+  box-shadow:0 30px 90px rgba(0,0,0,.42);
+  touch-action:none;
+}
+.home,.detail,.expand-sheet{position:absolute;inset:0}
+.home{
+  opacity:1;
+  transform:translate3d(var(--pan-x,0px),var(--pan-y,0px),0);
+  transition:opacity .42s ease,filter .42s ease;
+  will-change:transform,opacity,filter;
+}
+.phone.is-detail .home{opacity:0;filter:blur(10px)}
+.phone.is-opening .home{opacity:1;filter:none}
+.phone.is-opening .home > :not(.practice){
+  opacity:0;
+  transform:translate3d(0,18px,0) scale(.96);
+  transition:opacity .32s ease,transform .46s cubic-bezier(.18,.9,.2,1);
+}
+.bubble{
+  position:absolute;
+  border:0;
+  border-radius:50%;
+  padding:0;
+  overflow:hidden;
+  background:rgba(255,255,255,.28);
+  box-shadow:0 18px 32px rgba(0,0,0,.22);
+  cursor:pointer;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  animation:float 5.5s ease-in-out infinite;
+}
+.bubble::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(145deg,rgba(255,255,255,.28),rgba(255,255,255,0) 45%);
+  z-index:2;
+  pointer-events:none;
+}
+.bubble .bg{
+  position:absolute;
+  inset:0;
+  background-image:var(--bg),linear-gradient(135deg,#32451f,#72845a);
+  background-size:cover;
+  background-position:center;
+  transform:scale(1.02);
+}
+.asset-bubble{
+  background:transparent;
+  box-shadow:none;
+  overflow:visible;
+}
+.asset-bubble::before{display:none}
+.asset-bubble img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  pointer-events:none;
+  user-select:none;
+}
+.practice{
+  width:214px;
+  height:214px;
+  right:-10px;
+  top:262px;
+  animation-delay:-1.3s;
+}
+.practice .bg{
+  background-size:cover;
+  background-position:center;
+}
+.practice .mist{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:-1px;
+  height:48%;
+  z-index:1;
+  background:rgba(56,75,34,.72);
+  filter:blur(14px);
+  transform:scale(1.18);
+}
+.tag{
+  position:absolute;
+  z-index:3;
+  left:50%;
+  top:26px;
+  transform:translateX(-50%);
+  padding:7px 18px 8px;
+  border-radius:999px;
+  color:#fff;
+  font-size:24px;
+  font-weight:600;
+  letter-spacing:-.02em;
+  background:rgba(55,101,64,.66);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.34),0 10px 24px rgba(0,0,0,.2);
+  -webkit-backdrop-filter:blur(18px) saturate(1.25);
+  backdrop-filter:blur(18px) saturate(1.25);
+}
+.bubble-title{
+  position:absolute;
+  z-index:3;
+  left:18px;
+  right:18px;
+  bottom:34px;
+  margin:0;
+  color:#fff;
+  text-align:center;
+  font-size:24px;
+  line-height:1.04;
+  font-weight:600;
+  letter-spacing:-.03em;
+  text-shadow:0 2px 14px rgba(0,0,0,.38);
+}
+.phone.is-opening .practice .tag{
+  animation:textFloatAway .42s cubic-bezier(.18,.9,.2,1) forwards;
+}
+.phone.is-opening .practice .bubble-title{
+  animation:textRiseAway .48s cubic-bezier(.18,.9,.2,1) .04s forwards;
+}
+.proposal{
+  width:170px;
+  height:170px;
+  right:16px;
+  top:62px;
+  animation-delay:-.4s;
+}
+.compose{
+  width:260px;
+  height:260px;
+  left:-74px;
+  top:424px;
+  animation-delay:-2.1s;
+}
+.assistant{
+  position:absolute;
+  left:44px;
+  top:320px;
+  width:160px;
+  height:160px;
+  animation:float 5s ease-in-out infinite;
+}
+.weather{
+  position:absolute;
+  right:16px;
+  top:592px;
+  width:116px;
+  height:116px;
+  border-radius:50%;
+  animation:float 6.2s ease-in-out infinite -1.7s;
+}
+.spark-home{
+  position:absolute;
+  left:50%;
+  bottom:40px;
+  width:74px;
+  height:74px;
+  transform:translateX(-50%);
+  border:0;
+  border-radius:50%;
+  background:rgba(255,255,255,.34);
+  color:#fff;
+  font-size:32px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18),0 18px 38px rgba(0,0,0,.12);
+  backdrop-filter:blur(14px);
+}
+.detail{
+  z-index:4;
+  opacity:0;
+  pointer-events:none;
+  font-weight:500;
+  background:
+    linear-gradient(90deg,rgba(24,33,17,.1),rgba(23,31,15,.58)),
+    linear-gradient(180deg,rgba(8,15,7,.18),rgba(18,27,12,.08) 48%,rgba(17,23,12,.34)),
+    var(--bg),
+    linear-gradient(135deg,#26361a,#6e7b4c);
+  background-size:cover;
+  background-position:center;
+  clip-path:circle(var(--detail-radius,0px) at var(--detail-x,50%) var(--detail-y,50%));
+  -webkit-clip-path:circle(var(--detail-radius,0px) at var(--detail-x,50%) var(--detail-y,50%));
+  transition:
+    clip-path .95s cubic-bezier(.35,.23,.13,.98),
+    -webkit-clip-path .95s cubic-bezier(.35,.23,.13,.98),
+    opacity .12s linear;
+}
+.phone.is-detail .detail,
+.detail.is-opening{
+  opacity:1;
+  pointer-events:auto;
+}
+.detail.is-opening{
+  clip-path:circle(var(--detail-cover,120%) at var(--detail-x,50%) var(--detail-y,50%));
+  -webkit-clip-path:circle(var(--detail-cover,120%) at var(--detail-x,50%) var(--detail-y,50%));
+}
+.phone.is-detail .detail{
+  clip-path:circle(var(--detail-cover,150%) at var(--detail-x,50%) var(--detail-y,50%));
+  -webkit-clip-path:circle(var(--detail-cover,150%) at var(--detail-x,50%) var(--detail-y,50%));
+}
+.detail::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(circle at 14% 11%,rgba(255,255,255,.36),transparent 26%),
+    linear-gradient(90deg,rgba(255,255,255,.16),transparent 44%),
+    radial-gradient(circle at 92% 82%,rgba(0,0,0,.36),transparent 35%);
+  pointer-events:none;
+}
+.detail-content{
+  position:absolute;
+  inset:0;
+  z-index:2;
+  padding:66px 32px 30px;
+}
+.reveal{
+  opacity:0;
+  transform:translateY(24px) scale(.98);
+}
+.phone.is-detail .reveal{
+  animation:rise .72s cubic-bezier(.18,.9,.2,1) forwards;
+  animation-delay:calc(var(--i,0) * 90ms + 120ms);
+}
+.title{
+  margin:0;
+  max-width:330px;
+  color:transparent;
+  background:linear-gradient(90deg,rgba(255,255,255,.24) 0%,#fff 54%,rgba(255,255,255,.49) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  font-size:64px;
+  line-height:.98;
+  font-weight:500;
+  letter-spacing:-.06em;
+}
+.subtitle{
+  max-width:310px;
+  margin:22px 0 0;
+  color:transparent;
+  background:linear-gradient(90deg,rgba(255,255,255,.52) 0%,rgba(255,255,255,.96) 58%,rgba(255,255,255,.64) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  font-size:15px;
+  line-height:1.38;
+  font-weight:500;
+}
+.rate-card{
+  position:absolute;
+  left:142px;
+  right:auto;
+  top:334px;
+  width:238px;
+  height:184px;
+  border-radius:58px;
+  padding:36px 32px;
+  overflow:hidden;
+  color:#fff;
+  background:rgba(245,245,238,.18);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),0 24px 60px rgba(0,0,0,.22);
+  backdrop-filter:blur(18px);
+}
+.rate-card::after{
+  content:"";
+  position:absolute;
+  inset:-40px;
+  background:radial-gradient(circle at 10% 18%,rgba(255,255,255,.6),transparent 26%),linear-gradient(90deg,rgba(9,13,7,.9),rgba(52,65,34,.84));
+  filter:blur(18px);
+  z-index:-1;
+}
+.rate-card span,
+.rate-card strong{
+  color:transparent;
+  background:linear-gradient(90deg,rgba(255,255,255,.58) 0%,#fff 54%,rgba(255,255,255,.66) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+}
+.rate-card span{display:block;font-size:28px;line-height:1.12;font-weight:500}
+.rate-card strong{display:block;margin-top:20px;font-size:74px;line-height:1;font-weight:500;letter-spacing:-.07em}
+.rate-card small{font-size:33px;font-weight:500}
+.stats{
+  position:absolute;
+  left:28px;
+  bottom:146px;
+  width:346px;
+  height:76px;
+  text-align:center;
+}
+.stat{position:absolute;top:0;width:96px}
+.stat:nth-child(1){left:0}
+.stat:nth-child(2){left:125px}
+.stat:nth-child(3){left:250px}
+.stat strong{display:block;color:#fff;font-size:40px;line-height:1;font-weight:500;letter-spacing:-.04em}
+.stat span{display:block;margin-top:13px;color:rgba(255,255,255,.72);font-size:15px;font-weight:500;letter-spacing:.07em;white-space:nowrap}
+.bottom{
+  position:absolute;
+  left:30px;
+  right:22px;
+  bottom:32px;
+  display:grid;
+  grid-template-columns:74px 1fr;
+  gap:16px;
+  align-items:center;
+}
+.spark{
+  width:74px;
+  height:74px;
+  border:0;
+  border-radius:50%;
+  background:rgba(255,255,255,.2);
+  color:#fff;
+  font-size:34px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);
+  backdrop-filter:blur(15px);
+}
+.start{
+  min-width:0;
+  height:76px;
+  border:1px solid rgba(255,255,255,.28);
+  border-radius:999px;
+  background:rgba(255,255,255,.18);
+  color:#fff;
+  font-size:22px;
+  font-weight:500;
+  box-shadow:inset 0 0 38px rgba(255,255,255,.2),0 22px 44px rgba(0,0,0,.16);
+  backdrop-filter:blur(18px);
+}
+.close{
+  position:absolute;
+  z-index:5;
+  top:18px;
+  right:18px;
+  width:42px;
+  height:42px;
+  border:0;
+  border-radius:50%;
+  background:rgba(0,0,0,.22);
+  opacity:0;
+  pointer-events:none;
+  backdrop-filter:blur(12px);
+}
+.phone.is-detail .close{opacity:1;pointer-events:auto}
+.expand-sheet{
+  z-index:8;
+  display:none;
+  inset:auto;
+  width:var(--detail-diameter,214px);
+  height:var(--detail-diameter,214px);
+  left:var(--detail-left,0px);
+  top:var(--detail-top,0px);
+  border-radius:50%;
+  overflow:hidden;
+  background:
+    linear-gradient(90deg,rgba(24,33,17,.1),rgba(23,31,15,.58)),
+    var(--bg),
+    linear-gradient(135deg,#26361a,#6e7b4c);
+  background-size:cover;
+  background-position:center;
+  will-change:left,top,width,height,border-radius,opacity;
+}
+.phone.is-opening .expand-sheet{display:block;animation:bubbleImageExpand .95s cubic-bezier(.35,.23,.13,.98) forwards}
+.expand-sheet::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.16),transparent 32%,rgba(10,18,8,.34));
+}
+@keyframes bubbleImageExpand{
+  0%{
+    left:var(--detail-left,0px);
+    top:var(--detail-top,0px);
+    width:var(--detail-diameter,214px);
+    height:var(--detail-diameter,214px);
+    border-radius:50%;
+    opacity:1;
+  }
+  82%{opacity:1}
+  100%{
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+    border-radius:0;
+    opacity:0;
+  }
+}
+@keyframes rise{
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes textFloatAway{
+  to{opacity:0;transform:translate3d(-50%,-28px,0) scale(.94);filter:blur(5px)}
+}
+@keyframes textRiseAway{
+  to{opacity:0;transform:translate3d(0,-28px,0) scale(.94);filter:blur(5px)}
+}
+@keyframes float{
+  0%,100%{transform:translate3d(0,0,0)}
+  50%{transform:translate3d(0,-10px,0)}
+}
+@media (max-width:520px){
+  body{display:block}
+  .phone{width:100vw;height:100dvh;min-height:680px;box-shadow:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}
+}
+</style>
+</head>
+<body>
+<main class="phone" id="phone" aria-label="Golf practice flow prototype">
+  <section class="home" aria-label="Bubble overview">
+    <div class="assistant asset-bubble" aria-hidden="true">
+      <img src="golf-bubbles/image 62840.png" alt="">
+    </div>
+
+    <button class="bubble proposal asset-bubble" type="button" aria-label="Proposal ready for review">
+      <img src="golf-bubbles/image 62842.png" alt="">
+    </button>
+
+    <button class="bubble practice" id="practiceBubble" type="button" aria-label="Open putting practice goal">
+      <span class="bg" aria-hidden="true"></span>
+      <span class="mist" aria-hidden="true"></span>
+      <span class="tag">Putting</span>
+      <span class="bubble-title">Practice<br>Goal</span>
+    </button>
+
+    <button class="bubble compose asset-bubble" type="button" aria-label="Crafting message to Sally">
+      <img src="golf-bubbles/image 62841.png" alt="">
+    </button>
+
+    <div class="weather asset-bubble" aria-label="22 degrees and sunny">
+      <img src="golf-bubbles/image 62843.png" alt="">
+    </div>
+    <button class="spark-home" type="button" aria-label="Assistant">✦</button>
+  </section>
+
+  <div class="expand-sheet" id="expandSheet" aria-hidden="true"></div>
+
+  <section class="detail" aria-label="Putting goal today">
+    <div class="detail-content">
+      <h1 class="title reveal" style="--i:0">Putting goal<br>today</h1>
+      <p class="subtitle reveal" style="--i:1">A few focused minutes on the mat to keep your stroke sharp between rounds.</p>
+
+      <div class="rate-card reveal" style="--i:2">
+        <span>Make rate<br>8 ft</span>
+        <strong>68<small>%</small></strong>
+      </div>
+
+      <div class="stats reveal" style="--i:3">
+        <div class="stat"><strong>240</strong><span>PUTTS</span></div>
+        <div class="stat"><strong>12</strong><span>DAY STREAK</span></div>
+        <div class="stat"><strong>8<small> ft</small></strong><span>AVG MAKE</span></div>
+      </div>
+
+      <div class="bottom reveal" style="--i:4">
+        <button class="spark" type="button" aria-label="Assistant">✦</button>
+        <button class="start" type="button">Start practice</button>
+      </div>
+    </div>
+    <button class="close" id="closeDetail" type="button" aria-label="Back to bubbles">×</button>
+  </section>
+</main>
+
+<script>
+(()=>{
+  const phone=document.getElementById('phone');
+  const home=document.querySelector('.home');
+  const bubble=document.getElementById('practiceBubble');
+  const detail=document.querySelector('.detail');
+  const shared=document.getElementById('expandSheet');
+  const close=document.getElementById('closeDetail');
+  let drag=null;
+  let suppressBubbleClick=false;
+  let pan=null;
+  let panX=0, panY=0, targetPanX=0, targetPanY=0;
+  let transitionToken=0;
+  const panLimit=92;
+
+  function clamp(value,min,max){
+    return Math.max(min,Math.min(max,value));
+  }
+
+  function updateSharedBackground(){
+    const phoneRect=phone.getBoundingClientRect();
+    phone.style.setProperty('--stage-w',phoneRect.width.toFixed(2)+'px');
+    phone.style.setProperty('--stage-h',phoneRect.height.toFixed(2)+'px');
+  }
+
+  function animatePan(){
+    panX += (targetPanX-panX)*.22;
+    panY += (targetPanY-panY)*.22;
+    if(Math.abs(targetPanX-panX)<.03) panX=targetPanX;
+    if(Math.abs(targetPanY-panY)<.03) panY=targetPanY;
+    home.style.setProperty('--pan-x',panX.toFixed(2)+'px');
+    home.style.setProperty('--pan-y',panY.toFixed(2)+'px');
+    updateSharedBackground();
+    requestAnimationFrame(animatePan);
+  }
+  requestAnimationFrame(animatePan);
+
+  function openPractice(){
+    if(phone.classList.contains('is-opening') || phone.classList.contains('is-detail')) return;
+    updateSharedBackground();
+    const phoneRect=phone.getBoundingClientRect();
+    const bubbleRect=bubble.getBoundingClientRect();
+    const x=bubbleRect.left-phoneRect.left+bubbleRect.width*.5;
+    const y=bubbleRect.top-phoneRect.top+bubbleRect.height*.5;
+    const radius=bubbleRect.width*.5;
+    const diameter=radius*2;
+    const farthest=Math.max(
+      Math.hypot(x,y),
+      Math.hypot(phoneRect.width-x,y),
+      Math.hypot(x,phoneRect.height-y),
+      Math.hypot(phoneRect.width-x,phoneRect.height-y)
+    );
+    phone.style.setProperty('--detail-x',x.toFixed(2)+'px');
+    phone.style.setProperty('--detail-y',y.toFixed(2)+'px');
+    phone.style.setProperty('--detail-radius',radius.toFixed(2)+'px');
+    const cover=Math.max(farthest+180,Math.hypot(phoneRect.width,phoneRect.height));
+    phone.style.setProperty('--detail-cover',cover.toFixed(2)+'px');
+    phone.style.setProperty('--detail-diameter',diameter.toFixed(2)+'px');
+    phone.style.setProperty('--detail-left',(x-radius).toFixed(2)+'px');
+    phone.style.setProperty('--detail-top',(y-radius).toFixed(2)+'px');
+    const token=++transitionToken;
+    shared.style.display='block';
+    detail.classList.add('is-opening');
+    phone.classList.add('is-opening');
+    window.setTimeout(()=>{
+      if(token!==transitionToken) return;
+      phone.classList.add('is-detail');
+    },760);
+    window.setTimeout(()=>{
+      if(token!==transitionToken) return;
+      phone.classList.remove('is-opening');
+      shared.style.display='none';
+    },980);
+  }
+
+  function closePractice(){
+    transitionToken++;
+    phone.classList.remove('is-detail','is-opening');
+    detail.classList.remove('is-opening');
+    shared.style.display='none';
+  }
+
+  phone.addEventListener('pointerdown', event=>{
+    if(phone.classList.contains('is-opening') || phone.classList.contains('is-detail')) return;
+    pan={
+      id:event.pointerId,
+      startX:event.clientX,
+      startY:event.clientY,
+      baseX:targetPanX,
+      baseY:targetPanY
+    };
+  });
+  phone.addEventListener('pointermove', event=>{
+    if(!pan || pan.id!==event.pointerId) return;
+    const dx=event.clientX-pan.startX;
+    const dy=event.clientY-pan.startY;
+    targetPanX=clamp(pan.baseX+dx,-panLimit,panLimit);
+    targetPanY=clamp(pan.baseY+dy,-panLimit,panLimit);
+  });
+  phone.addEventListener('pointerup', event=>{
+    if(pan && pan.id===event.pointerId) pan=null;
+  });
+  phone.addEventListener('pointercancel', event=>{
+    if(pan && pan.id===event.pointerId) pan=null;
+  });
+
+  bubble.addEventListener('pointerdown', event=>{
+    suppressBubbleClick=false;
+    drag={
+      id:event.pointerId,
+      startX:event.clientX,
+      startY:event.clientY,
+      moved:false
+    };
+    bubble.setPointerCapture(event.pointerId);
+  });
+  bubble.addEventListener('pointermove', event=>{
+    if(!drag || drag.id!==event.pointerId) return;
+    if(Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY)>8){
+      drag.moved=true;
+      suppressBubbleClick=true;
+    }
+  });
+  bubble.addEventListener('pointerup', event=>{
+    if(!drag || drag.id!==event.pointerId) return;
+    const shouldOpen=!drag.moved;
+    drag=null;
+    if(shouldOpen) openPractice();
+  });
+  bubble.addEventListener('click', event=>{
+    if(suppressBubbleClick){
+      event.preventDefault();
+      suppressBubbleClick=false;
+      return;
+    }
+    openPractice();
+  });
+  bubble.addEventListener('keydown', event=>{
+    if(event.key==='Enter' || event.key===' '){
+      event.preventDefault();
+      openPractice();
+    }
+  });
+  close.addEventListener('click', closePractice);
+  window.addEventListener('keydown', event=>{
+    if(event.key==='Escape') closePractice();
+  });
+  window.addEventListener('resize', updateSharedBackground);
+})();
+</script>
+</body>
+</html>

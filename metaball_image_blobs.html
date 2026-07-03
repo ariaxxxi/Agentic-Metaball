@@ -64,6 +64,37 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   opacity:0;
   transition:none;
 }
+#mb-wrap.is-simple-render #mb-canvas{
+  opacity:0;
+}
+#mb-simple-layer{
+  position:absolute;
+  z-index:1;
+  inset:0;
+  display:none;
+  overflow:visible;
+  pointer-events:none;
+}
+#mb-simple-layer.is-visible{display:block}
+.simple-bubble{
+  position:absolute;
+  left:0;
+  top:0;
+  overflow:hidden;
+  border-radius:50%;
+  background:transparent;
+  box-shadow:0 10px 20px rgba(0,0,0,.2);
+  opacity:0;
+  transform:translate3d(-9999px,-9999px,0);
+  transform-origin:center;
+  will-change:transform,opacity,width,height;
+}
+.simple-bubble img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
 #mb-bubble-transitions{
   position:absolute;
   z-index:2;
@@ -435,9 +466,26 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   font-size:13px;
   line-height:1.5;
 }
+#mb-render-section{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:12px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:var(--mb-radius);
+  background:rgba(255,255,255,.055);
+}
+#mb-render-section label{
+  color:#ffcf7a;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+}
 #mb-bar{display:flex;align-items:center;justify-content:space-between;gap:12px}
 #mb-bar{flex-wrap:wrap;justify-content:flex-start}
-#mb-bar button{
+#mb-bar button,
+#mb-render-toggle{
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -454,10 +502,20 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   cursor:pointer;
   transition:transform .18s ease,border-color .18s ease,background .18s ease;
 }
-#mb-bar button:hover{transform:translateY(-1px);border-color:rgba(255,207,122,.56);background:rgba(255,207,122,.12)}
-#mb-bar button:active{transform:translateY(0)}
+#mb-render-toggle{
+  width:100%;
+}
+#mb-bar button:hover,
+#mb-render-toggle:hover{transform:translateY(-1px);border-color:rgba(255,207,122,.56);background:rgba(255,207,122,.12)}
+#mb-bar button:active,
+#mb-render-toggle:active{transform:translateY(0)}
 #mb-bar button:disabled{opacity:.38;pointer-events:none}
 #mb-grid-toggle[aria-pressed="true"]{
+  border-color:rgba(255,255,255,.7);
+  background:#fff;
+  color:#16161d;
+}
+#mb-render-toggle[aria-pressed="true"]{
   border-color:rgba(255,255,255,.7);
   background:#fff;
   color:#16161d;
@@ -705,6 +763,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   <section id="mb-stage" aria-label="Interactive metaball canvas">
     <div id="mb-wrap">
       <canvas id="mb-canvas"></canvas>
+      <div id="mb-simple-layer" aria-hidden="true"></div>
       <div id="mb-bubble-transitions" aria-hidden="true"></div>
       <div id="mb-grid-extra" aria-hidden="true"></div>
       <div id="mb-listening" aria-live="polite">
@@ -737,6 +796,11 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
       <span id="mb-kicker">Image Field</span>
       <h1>Metaball Lab</h1>
       <span id="mb-hint"><i class="ti ti-hand-finger" style="font-size:16px;vertical-align:-2px;margin-right:4px" aria-hidden="true"></i>Drag blobs together and tune how the pictures merge through the field.</span>
+    </div>
+
+    <div id="mb-render-section">
+      <label for="mb-render-toggle">Render mode</label>
+      <button id="mb-render-toggle" aria-label="Toggle circle image render mode" aria-pressed="false">Mode: Metaball</button>
     </div>
 
     <div id="mb-bar">
@@ -940,6 +1004,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   const textures = [];
   const imageLoadVersion = Array(MAX_BALLS).fill(0);
   const currentBubbleAsset = Array(MAX_BALLS).fill(null);
+  const displayImageSrc = Array(MAX_BALLS).fill('');
   const skipSavedImageRestore = Array(MAX_BALLS).fill(false);
   const bubbleColors = ['#ffb259','#6fd0e8','#8cc657','#2ee6b0','#ff5a3c','#c58cff','#ff8fb8','#d7e76c','#ff9f6e'];
   const defaultRadii = [110,75,57,74,52,60,60,60,64];
@@ -1116,7 +1181,9 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     cx.drawImage(img, (size-width)/2, (size-height)/2, width, height);
     cx.restore();
     const processed=applyProgressiveBlur(cv);
-    document.getElementById('preview-'+unit).src = processed.toDataURL('image/jpeg', .82);
+    const previewSrc=processed.toDataURL('image/jpeg', .82);
+    displayImageSrc[unit]=previewSrc;
+    document.getElementById('preview-'+unit).src = previewSrc;
     document.getElementById('image-state-'+unit).textContent = label;
     gl.activeTexture(gl.TEXTURE0+unit);
     gl.bindTexture(gl.TEXTURE_2D, textures[unit]);
@@ -1137,10 +1204,14 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
         return;
       }
       const preview=document.getElementById('preview-'+unit);
-      if(preview && !revoke && src.indexOf('assets/bubbles/')===0) preview.src=assetUrl(src);
+      if(preview && !revoke && src.indexOf('assets/bubbles/')===0){
+        displayImageSrc[unit]=assetUrl(src);
+        preview.src=displayImageSrc[unit];
+      }
       try{
         uploadTexture(unit, img, label);
         currentBubbleAsset[unit] = !revoke && src.indexOf('assets/bubbles/')===0 ? src : null;
+        if(!revoke && src.indexOf('assets/bubbles/')===0) displayImageSrc[unit]=assetUrl(src);
         if(onLoaded) onLoaded();
       }catch(error){
         const hint=document.getElementById('mb-clipboard-hint');
@@ -1174,6 +1245,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
         try{
           uploadTexture(unit, img, label);
           currentBubbleAsset[unit] = src;
+          if(src.indexOf('assets/bubbles/')===0) displayImageSrc[unit]=assetUrl(src);
           clearTimeout(timeout);
           resolve(true);
         }catch(error){
@@ -1324,6 +1396,8 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   }
 
   let drag=-1, panning=false, offX=0, offY=0, panX=0, panY=0, activeBubble=0;
+  const activePointers = new Map();
+  let pinching=false, pinchDistance=0, pinchZoom=1, pinchCenter={x:0,y:0};
   let dragTargetX=0, dragTargetY=0;
   let panVelX=0, panVelY=0, panLastTime=0;
   let gestureStartX=0, gestureStartY=0, gestureMoved=false, gestureBlank=false, longPressTimer=0, longPressArmed=false, wobbleActivatedThisGesture=false;
@@ -1344,12 +1418,14 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   const playButton = document.getElementById('mb-play');
   const startButton = document.getElementById('mb-start');
   const gridButton = document.getElementById('mb-grid-toggle');
+  const renderToggleButton = document.getElementById('mb-render-toggle');
   const shuffleButton = document.getElementById('mb-shuffle');
   const endButton = document.getElementById('mb-end');
   const addButton = document.getElementById('mb-add');
   const removeButton = document.getElementById('mb-remove');
   const aiButton = document.getElementById('mb-ai');
   const shakeButton = document.getElementById('mb-shake');
+  const simpleLayer = document.getElementById('mb-simple-layer');
   const bubbleTransitions = document.getElementById('mb-bubble-transitions');
   const gridExtraLayer = document.getElementById('mb-grid-extra');
   const detailView = document.getElementById('mb-detail');
@@ -1359,6 +1435,32 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   const listeningText = document.getElementById('mb-listening-text');
   let preFlowState = 'idle', bubbleLayersActive=false, detailReady=false, detailOpen=false;
   let gridActive=false, gridSnapshot=null, gridFloatSnapshot=1, gridTransitioning=false;
+  let renderMode = localStorage.getItem('metaball-render-mode') === 'circle' ? 'circle' : 'metaball';
+  const simpleBubbleNodes = Array.from({length:MAX_BALLS}, (_, index)=>{
+    const bubble=document.createElement('span');
+    const img=document.createElement('img');
+    bubble.className='simple-bubble';
+    bubble.dataset.simpleBubble=index;
+    img.alt='';
+    bubble.appendChild(img);
+    simpleLayer.appendChild(bubble);
+    return {bubble,img,src:''};
+  });
+  function applyRenderMode(){
+    const simple=renderMode==='circle';
+    wrap.classList.toggle('is-simple-render', simple);
+    simpleLayer.classList.toggle('is-visible', simple);
+    simpleLayer.setAttribute('aria-hidden', String(!simple));
+    renderToggleButton.setAttribute('aria-pressed', String(simple));
+    renderToggleButton.textContent=simple ? 'Mode: Circle' : 'Mode: Metaball';
+    renderToggleButton.setAttribute('aria-label', simple ? 'Switch to metaball render mode' : 'Switch to circle image render mode');
+    renderToggleButton.title=simple ? 'Current mode: Circle images. Click for metaballs.' : 'Current mode: Metaballs. Click for circle images.';
+  }
+  function setRenderMode(mode){
+    renderMode=mode==='circle' ? 'circle' : 'metaball';
+    localStorage.setItem('metaball-render-mode', renderMode);
+    applyRenderMode();
+  }
   const extraBubbleAssets = [
     'assets/bubbles/image 3187.png',
     'assets/bubbles/image 3189.png',
@@ -1845,30 +1947,35 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     return copy;
   }
   function shuffleTargets(){
-    const flowTargets=[];
+    const targets=new Set();
+    activeSlots.forEach((active,index)=>{
+      if(active) targets.add(index);
+    });
     if(flowOverride){
       for(let i=0;i<MAX_BALLS;i++){
-        if(flowWeight[i]>.02) flowTargets.push(i);
+        if(flowWeight[i]>.02) targets.add(i);
       }
     }
-    return flowTargets.length ? flowTargets : activeSlots.map((active,index)=>active ? index : -1).filter(index=>index>=0);
+    return [...targets].sort((a,b)=>a-b);
   }
   function pickShuffleAssets(targets){
-    const choices=shuffleArray(extraBubbleAssets.concat(defaultBubbleAssets.filter(Boolean)));
+    const assetPool=extraBubbleAssets.concat(defaultBubbleAssets.filter(Boolean));
+    const choices=shuffleArray(assetPool);
     return targets.map((index,order)=>{
-      const current=currentBubbleAsset[visualTextureUnit(index)];
-      let offset=choices.findIndex(asset=>asset!==current);
+      const currentUnits=textureUnitsForBubble(index);
+      const currentAssets=new Set(currentUnits.map(unit=>currentBubbleAsset[unit]).filter(Boolean));
+      let offset=choices.findIndex(asset=>!currentAssets.has(asset));
       if(offset<0) offset=order%choices.length;
       const asset=choices.splice(offset,1)[0];
-      if(choices.length<targets.length) choices.push(asset);
+      if(!choices.length) choices.push(...shuffleArray(assetPool.filter(item=>item!==asset)));
       return asset;
     });
   }
   function visualTextureUnit(index){
-    return index===0 && swapMix>.5 ? swapTextureIndex : index;
+    return index;
   }
   function textureUnitsForBubble(index){
-    return index===0 ? [...new Set([0,swapTextureIndex])] : [index];
+    return [index];
   }
   async function clearSavedImagesForShuffle(targets){
     const units=[...new Set(targets.flatMap(textureUnitsForBubble))];
@@ -1876,10 +1983,11 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
       skipSavedImageRestore[unit]=true;
       imageLoadVersion[unit]++;
     });
-    await Promise.allSettled(units.filter(unit=>unit!==swapTextureIndex).map(unit=>deleteBubbleImage(unit)));
+    await Promise.allSettled(units.map(unit=>deleteBubbleImage(unit)));
   }
   async function shuffleBubbles(){
-    if(preFlowState!=='ready' || flowRunning || detailOpen || bubbleLayersActive) return;
+    if(preFlowState!=='ready' || flowRunning || detailOpen || bubbleLayersActive || gridActive) return;
+    swapMix=0;
     const targets=shuffleTargets();
     if(!targets.length) return;
     const token=flowToken;
@@ -1910,7 +2018,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
         return Promise.all(textureUnitsForBubble(index).map(unit=>loadImageSourceAsync(unit, asset, label)));
       }));
       if(token!==flowToken) return;
-      completed=loaded.some(result=>result.status==='fulfilled');
+      completed=loaded.length===targets.length && loaded.every(result=>result.status==='fulfilled' && result.value.every(Boolean));
       await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
       if(token!==flowToken) return;
       await tweenFlow(520,token,(p,raw)=>{
@@ -1940,12 +2048,24 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
 
   let shakeEnabled=false;
   let shakeListening=false;
-  let shakeLast={x:0,y:0,z:0,ready:false};
+  let shakeLastGravity={x:0,y:0,z:0,ready:false};
+  let shakeLastRaw={x:0,y:0,z:0,ready:false};
+  let shakeMotionSeen=false;
+  let shakeSignalTimer=0;
   let lastShakeTime=0;
   function setShakeButtonState(text, active){
     if(!shakeButton) return;
     shakeButton.textContent=text;
     shakeButton.classList.toggle('is-active', !!active);
+  }
+  function resetShakeSamples(){
+    shakeLastGravity={x:0,y:0,z:0,ready:false};
+    shakeLastRaw={x:0,y:0,z:0,ready:false};
+    shakeMotionSeen=false;
+    if(shakeSignalTimer){
+      clearTimeout(shakeSignalTimer);
+      shakeSignalTimer=0;
+    }
   }
   async function enableShakeShuffle(){
     if(!shakeButton || typeof DeviceMotionEvent==='undefined') return;
@@ -1961,35 +2081,59 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
         }
       }
       shakeEnabled=true;
-      shakeLast={x:0,y:0,z:0,ready:false};
+      resetShakeSamples();
       if(!shakeListening){
         window.addEventListener('devicemotion', handleShakeMotion, {passive:true});
         shakeListening=true;
       }
       setShakeButtonState('Shake on', true);
+      shakeSignalTimer=setTimeout(()=>{
+        if(shakeEnabled && !shakeMotionSeen) setShakeButtonState(window.isSecureContext ? 'No signal' : 'Need HTTPS', false);
+      },2600);
     }catch(error){
       setShakeButtonState('No motion', false);
     }finally{
       updateShakeButton();
     }
   }
+  function motionSample(value){
+    if(!value) return null;
+    return {
+      x:Number.isFinite(value.x) ? value.x : 0,
+      y:Number.isFinite(value.y) ? value.y : 0,
+      z:Number.isFinite(value.z) ? value.z : 0
+    };
+  }
+  function motionDelta(current,last){
+    if(!current) return 0;
+    if(!last.ready){
+      last.x=current.x;
+      last.y=current.y;
+      last.z=current.z;
+      last.ready=true;
+      return 0;
+    }
+    const delta=Math.abs(current.x-last.x)+Math.abs(current.y-last.y)+Math.abs(current.z-last.z);
+    last.x=current.x;
+    last.y=current.y;
+    last.z=current.z;
+    return delta;
+  }
+  function motionMagnitude(current){
+    return current ? Math.hypot(current.x,current.y,current.z) : 0;
+  }
   function handleShakeMotion(event){
     if(!shakeEnabled || preFlowState!=='ready' || flowRunning || detailOpen || gridActive) return;
-    const acceleration=event.accelerationIncludingGravity || event.acceleration;
-    if(!acceleration) return;
-    const current={
-      x:acceleration.x || 0,
-      y:acceleration.y || 0,
-      z:acceleration.z || 0
-    };
-    if(!shakeLast.ready){
-      shakeLast={...current,ready:true};
-      return;
-    }
-    const delta=Math.abs(current.x-shakeLast.x)+Math.abs(current.y-shakeLast.y)+Math.abs(current.z-shakeLast.z);
-    shakeLast={...current,ready:true};
+    const gravity=motionSample(event.accelerationIncludingGravity);
+    const raw=motionSample(event.acceleration);
+    if(!gravity && !raw) return;
+    shakeMotionSeen=true;
+    const gravityDelta=motionDelta(gravity,shakeLastGravity);
+    const rawDelta=motionDelta(raw,shakeLastRaw);
+    const rawMagnitude=motionMagnitude(raw);
+    const shakeScore=Math.max(gravityDelta,rawDelta*1.6,rawMagnitude*1.35);
     const now=Date.now();
-    if(delta<30 || now-lastShakeTime<1500) return;
+    if(shakeScore<22 || now-lastShakeTime<1500) return;
     lastShakeTime=now;
     setShakeButtonState('Shuffling', true);
     shuffleBubbles().finally(()=>{
@@ -2007,6 +2151,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     gridTransitioning=true;
     gridExtraLayer.classList.remove('is-wobbly');
     gridButton.disabled=true;
+    shuffleButton.disabled=true;
     flowRunning=true;
     updateShakeButton();
 
@@ -2076,6 +2221,7 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
 
     flowRunning=false;
     gridButton.disabled=false;
+    shuffleButton.disabled=gridActive;
     updateShakeButton();
   }
 
@@ -2180,6 +2326,49 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
       y:(e.clientY-r.top)*(H/r.height)
     };
   }
+  function pointerPoint(pointer){
+    const r=canvas.getBoundingClientRect();
+    return {
+      x:(pointer.clientX-r.left)*(W/r.width),
+      y:(pointer.clientY-r.top)*(H/r.height)
+    };
+  }
+  function beginPinch(){
+    const points=Array.from(activePointers.values()).slice(0,2).map(pointerPoint);
+    if(points.length<2) return false;
+    pinchDistance=Math.max(1,Math.hypot(points[0].x-points[1].x,points[0].y-points[1].y));
+    pinchZoom=viewport.tz;
+    pinchCenter={
+      x:(points[0].x+points[1].x)/2,
+      y:(points[0].y+points[1].y)/2
+    };
+    pinching=true;
+    drag=-1;
+    panning=false;
+    panVelX=0;
+    panVelY=0;
+    clearLongPress();
+    return true;
+  }
+  function updatePinchZoom(){
+    if(!pinching || activePointers.size<2) return false;
+    const points=Array.from(activePointers.values()).slice(0,2).map(pointerPoint);
+    const distance=Math.max(1,Math.hypot(points[0].x-points[1].x,points[0].y-points[1].y));
+    const center={
+      x:(points[0].x+points[1].x)/2,
+      y:(points[0].y+points[1].y)/2
+    };
+    const oldZoom=viewport.tz;
+    const nextZoom=Math.max(.72,Math.min(1.75,pinchZoom*(distance/pinchDistance)));
+    const beforeX=(pinchCenter.x-W*.5-viewport.tx)/oldZoom;
+    const beforeY=(pinchCenter.y-H*.5-viewport.ty)/oldZoom;
+    viewport.tz=nextZoom;
+    viewport.tx=center.x-W*.5-beforeX*nextZoom;
+    viewport.ty=center.y-H*.5-beforeY*nextZoom;
+    clampViewportTarget();
+    gestureMoved=true;
+    return true;
+  }
   function flowBubbleAt(point){
     for(let i=MAX_BALLS-1;i>=0;i--){
       const visible=flowOverride ? flowWeight[i] : (activeSlots[i] ? 1 : 0);
@@ -2204,6 +2393,13 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     },480);
   }
   wrap.addEventListener('pointerdown', function(e){
+    activePointers.set(e.pointerId,{clientX:e.clientX,clientY:e.clientY});
+    if(e.pointerType!=='mouse' && flowOverride && preFlowState==='ready' && !flowRunning && !detailOpen && !gridActive && activePointers.size>=2){
+      wrap.setPointerCapture(e.pointerId);
+      beginPinch();
+      e.preventDefault();
+      return;
+    }
     const p = ptr(e);
     if(flowOverride){
       const flowPick = (!gridActive && !wobbleActive && !detailOpen) ? flowBubbleAt(p) : -1;
@@ -2276,6 +2472,14 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     e.preventDefault();
   });
   wrap.addEventListener('pointermove', function(e){
+    if(activePointers.has(e.pointerId)){
+      activePointers.set(e.pointerId,{clientX:e.clientX,clientY:e.clientY});
+    }
+    if(pinching){
+      updatePinchZoom();
+      e.preventDefault();
+      return;
+    }
     const p=ptr(e);
     if(drag>=0){
       dragTargetX=p.x-offX;
@@ -2344,7 +2548,20 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     panX+=dx;
     panY+=dy;
   });
-  function release(){
+  function release(e){
+    if(e && activePointers.has(e.pointerId)) activePointers.delete(e.pointerId);
+    if(pinching){
+      if(activePointers.size>=2){
+        beginPinch();
+        return;
+      }
+      pinching=false;
+      drag=-1;
+      panning=false;
+      panVelX=0;
+      panVelY=0;
+      return;
+    }
     clearLongPress();
     if(flowOverride && panning && wobbleActive && gestureBlank && !gestureMoved){
       if(!wobbleActivatedThisGesture) setWobble(false);
@@ -2404,6 +2621,9 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
   });
   startButton.addEventListener('click', startAIFlow);
   gridButton.addEventListener('click', toggleGridLayout);
+  renderToggleButton.addEventListener('click', ()=>{
+    setRenderMode(renderMode==='circle' ? 'metaball' : 'circle');
+  });
   shuffleButton.addEventListener('click', shuffleBubbles);
   shakeButton.addEventListener('click', event=>{
     event.stopPropagation();
@@ -2547,6 +2767,30 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
     }
   });
 
+  function renderSimpleBubble(index, weight, scale){
+    const node=simpleBubbleNodes[index];
+    if(!node) return;
+    const b=balls[index];
+    if(renderMode!=='circle' || !b || weight<=.02){
+      node.bubble.style.opacity='0';
+      return;
+    }
+    const src=displayImageSrc[index] || document.getElementById('preview-'+index).src;
+    if(src && node.src!==src){
+      node.img.src=src;
+      node.src=src;
+    }
+    const radius=Math.max(1,b.r*scale);
+    const size=radius*2;
+    node.bubble.style.width=size.toFixed(2)+'px';
+    node.bubble.style.height=size.toFixed(2)+'px';
+    node.bubble.style.opacity=Math.max(0,Math.min(1,weight)).toFixed(3);
+    node.bubble.style.transform='translate3d('+(b.dx-radius).toFixed(2)+'px,'+(b.dy-radius).toFixed(2)+'px,0)';
+  }
+  function hideSimpleBubbles(){
+    simpleBubbleNodes.forEach(node=>{ node.bubble.style.opacity='0'; });
+  }
+
   function frame(now){
     const t = now*0.001;
     viewport.x += (viewport.tx-viewport.x)*.095;
@@ -2601,14 +2845,17 @@ body{font-family:"DM Sans",ui-sans-serif,system-ui,sans-serif}
       const scale = baseScale*viewport.z*edgeVisual[i].scale*wobbleScale;
       gl.uniform1f(U.active[i], weight);
       gl.uniform3f(U.balls[i], b.dx*dpr, (H-b.dy)*dpr, Math.max(1,b.r*scale)*dpr);
+      renderSimpleBubble(i, weight, scale);
     }
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    if(renderMode!=='circle') hideSimpleBubbles();
     requestAnimationFrame(frame);
   }
 
   if(window.ResizeObserver){ new ResizeObserver(resize).observe(wrap); }
   window.addEventListener('resize', resize);
   if(window.visualViewport) window.visualViewport.addEventListener('resize', resize);
+  applyRenderMode();
   resize();
   requestAnimationFrame(frame);
   if(mobileFullscreenQuery.matches){
