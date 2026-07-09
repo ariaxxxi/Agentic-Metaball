@@ -131,6 +131,7 @@ button{font:inherit;color:inherit}
   top:50%;
   width:var(--w,100px);
   height:var(--h,100px);
+  padding:var(--pad-top,0) var(--pad-x,0) var(--pad-bottom,0);
   overflow:hidden;
   transform:translate3d(calc(-50% + var(--x,0px)),calc(-50% + var(--y,0px)),0) scale(var(--scale,1));
   border-radius:var(--r,50%);
@@ -139,12 +140,13 @@ button{font:inherit;color:inherit}
   transition:
     width 1200ms var(--ease),
     height 1200ms var(--ease),
+    padding 1200ms var(--ease),
     transform 1200ms var(--ease),
     border-radius 1200ms var(--ease),
     opacity .62s ease,
     filter 1200ms var(--ease),
     box-shadow 1200ms var(--ease);
-  will-change:transform,width,height,border-radius,filter,opacity;
+  will-change:transform,width,height,padding,border-radius,filter,opacity;
   pointer-events:none;
 }
 .bubble-card.is-measuring{
@@ -206,7 +208,9 @@ button{font:inherit;color:inherit}
   box-shadow:var(--shadow);
   -webkit-backdrop-filter:blur(26px);
   backdrop-filter:blur(26px);
-  padding:110px 28px 26px;
+  --pad-top:110px;
+  --pad-x:28px;
+  --pad-bottom:26px;
 }
 .bubble-card.is-measuring{
   pointer-events:none;
@@ -718,16 +722,16 @@ button{font:inherit;color:inherit}
       actions:['Approve','Revise']
     },
     {
-      key:'weather',
-      image:'golf-bubbles/image 62843.png',
-      chip:'Weather',
-      bubbleLabel:'22° and\nsunny',
-      title:'Outdoor window',
-      subtitle:'Sunny through the afternoon',
+      key:'assistant',
+      image:'golf-bubbles/image 62840.png',
+      chip:'Travel Agent',
+      bubbleLabel:'Travel Agent\nready',
+      title:'Travel Agent',
+      subtitle:'Ready when you are',
       content:[
-        {type:'weather',temp:'22°',label:'Clear breeze · 4 mph'}
+        {type:'quote',value:'What would you like to do next?'}
       ],
-      actions:['View hour','Share']
+      actions:['Ask','Dismiss']
     }
   ];
 
