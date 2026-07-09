@@ -1,0 +1,937 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vertical Bubble Stack</title>
+<style>
+:root{
+  --phone-w:402px;
+  --phone-h:874px;
+  --ink:#fffdf7;
+  --muted:rgba(255,255,255,.6);
+  --glass:rgba(255,255,255,.18);
+  --shadow:0 36px 90px rgba(59,53,38,.18);
+  --ease:cubic-bezier(.22,.88,.24,1);
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;
+  min-height:100%;
+  background:#f0ede6;
+  color:var(--ink);
+  font-family:"Avenir Next","Helvetica Neue",ui-sans-serif,sans-serif;
+}
+body{
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+}
+button{font:inherit;color:inherit}
+.phone{
+  position:relative;
+  width:min(var(--phone-w),100vw);
+  height:min(var(--phone-h),100vh);
+  aspect-ratio:402/874;
+  overflow:hidden;
+  isolation:isolate;
+  touch-action:none;
+  background:
+    radial-gradient(circle at 50% 12%,rgba(255,255,255,.98),rgba(243,239,231,.96) 44%,rgba(225,220,210,.96) 100%);
+  box-shadow:0 26px 80px rgba(0,0,0,.18);
+}
+.backdrop{
+  position:absolute;
+  inset:-18%;
+  background:radial-gradient(circle at 50% 10%,rgba(255,255,255,.86),rgba(232,226,216,.7) 55%,rgba(214,207,194,.86));
+  filter:blur(32px);
+}
+.grain{
+  position:absolute;
+  inset:0;
+  opacity:.2;
+  background-image:
+    radial-gradient(rgba(255,255,255,.65) .45px,transparent .45px),
+    radial-gradient(rgba(94,86,67,.18) .45px,transparent .45px);
+  background-position:0 0,8px 8px;
+  background-size:16px 16px;
+  pointer-events:none;
+  mix-blend-mode:soft-light;
+}
+.day-pill{
+  position:absolute;
+  top:60px;
+  left:50%;
+  transform:translateX(-50%);
+  width:var(--pill-w,118px);
+  height:48px;
+  padding:0 34px;
+  border-radius:999px;
+  color:#fff;
+  font-size:20px;
+  font-weight:600;
+  letter-spacing:.02em;
+  overflow:hidden;
+  background:rgba(153,153,153,.5);
+  box-shadow:0 22px 44px rgba(0,0,0,.12);
+  -webkit-backdrop-filter:blur(20px);
+  backdrop-filter:blur(20px);
+  isolation:isolate;
+  z-index:4;
+  transition:width .46s var(--ease);
+}
+.day-pill::after,
+.prompt::after,
+.action::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  border-radius:inherit;
+  border:1px solid rgba(255,255,255,.18);
+  background:
+    radial-gradient(circle at 50% -6px,rgba(255,255,255,.58) 0,rgba(255,255,255,.24) 32%,rgba(255,255,255,0) 66%);
+  box-shadow:
+    inset 0 0 20px rgba(255,255,255,.14),
+    inset 0 1px 8px rgba(255,255,255,.08),
+    inset 0 -8px 14px rgba(255,255,255,.06);
+  pointer-events:none;
+}
+.day-pill span,
+.prompt span,
+.action-label{
+  position:relative;
+  z-index:2;
+}
+.day-pill span{
+  justify-content:center;
+  white-space:nowrap;
+  width:100%;
+  display:flex;
+  align-items:center;
+  height:100%;
+  transition:opacity .28s ease,transform .34s var(--ease);
+  will-change:opacity,transform;
+}
+.day-pill span.is-exiting{
+  opacity:0;
+  transform:translateY(-10px);
+}
+.day-pill span.is-entering{
+  opacity:0;
+  transform:translateY(10px);
+}
+.stack{
+  position:absolute;
+  inset:0;
+}
+.bubble-card{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:var(--w,100px);
+  height:var(--h,100px);
+  overflow:hidden;
+  transform:translate3d(calc(-50% + var(--x,0px)),calc(-50% + var(--y,0px)),0) scale(var(--scale,1));
+  border-radius:var(--r,50%);
+  opacity:var(--opacity,1);
+  filter:blur(var(--blur,0px)) saturate(var(--saturation,1));
+  transition:
+    width 1200ms var(--ease),
+    height 1200ms var(--ease),
+    transform 1200ms var(--ease),
+    border-radius 1200ms var(--ease),
+    opacity .62s ease,
+    filter 1200ms var(--ease),
+    box-shadow 1200ms var(--ease);
+  will-change:transform,width,height,border-radius,filter,opacity;
+  pointer-events:none;
+}
+.bubble-card.is-measuring{
+  left:-9999px;
+  top:0;
+  width:348px;
+  height:auto;
+  transform:none;
+  border-radius:70px;
+  opacity:0;
+  visibility:hidden;
+  transition:none;
+}
+.bubble-card.no-transition,
+.bubble-card.no-transition *{
+  transition:none!important;
+  animation:none!important;
+}
+.bubble-card::before{
+  content:"";
+  position:absolute;
+  inset:-60px;
+  border-radius:inherit;
+  background:var(--image) center/cover no-repeat;
+  filter:blur(20px) saturate(1.05);
+  opacity:var(--bg-opacity,.9);
+  transform:scale(1.2);
+  z-index:0;
+}
+.bubble-card::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.06) 28%,rgba(30,24,14,.18) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.18),
+    inset 0 18px 34px rgba(255,255,255,.14),
+    0 26px 64px rgba(62,53,32,.22);
+  z-index:1;
+}
+.bubble-surface{
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  border-radius:inherit;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.02) 28%,rgba(20,16,10,.24) 100%),
+    var(--image) center/cover no-repeat;
+  z-index:0;
+}
+.bubble-card.is-active,
+.bubble-card.is-measuring{
+  pointer-events:auto;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.08);
+  box-shadow:var(--shadow);
+  -webkit-backdrop-filter:blur(26px);
+  backdrop-filter:blur(26px);
+  padding:110px 28px 26px;
+}
+.bubble-card.is-measuring{
+  pointer-events:none;
+}
+.bubble-card.is-active::before{
+  opacity:1;
+}
+.bubble-card.is-active::after,
+.bubble-card.is-measuring::after{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.04) 28%,rgba(30,24,14,.1) 100%);
+}
+.bubble-card.is-active .bubble-surface,
+.bubble-card.is-measuring .bubble-surface{
+  opacity:0;
+}
+.bubble-card.is-active .meta,
+.bubble-card.is-active .content,
+.bubble-card.is-active .actions,
+.bubble-card.is-measuring .meta,
+.bubble-card.is-measuring .content,
+.bubble-card.is-measuring .actions{
+  position:relative;
+  left:auto;
+  right:auto;
+  top:auto;
+  bottom:auto;
+  width:100%;
+}
+.bubble-card.is-active .meta,
+.bubble-card.is-measuring .meta{
+  margin:0;
+}
+.bubble-card.is-active .content,
+.bubble-card.is-measuring .content{
+  margin-top:24px;
+  min-height:0;
+}
+.bubble-card.is-active .actions,
+.bubble-card.is-measuring .actions{
+  margin-top:24px;
+}
+.bubble-card:not(.is-active) .bubble-surface{
+  opacity:1;
+}
+.bubble-thumb{
+  position:absolute;
+  z-index:3;
+  left:50%;
+  top:34px;
+  width:64px;
+  height:64px;
+  border-radius:50%;
+  transform:translateX(-50%);
+  background:var(--image) center/cover no-repeat;
+  box-shadow:
+    0 12px 30px rgba(40,30,18,.18),
+    inset 0 0 0 1px rgba(255,255,255,.34);
+  transition:
+    width 1200ms var(--ease),
+    height 1200ms var(--ease),
+    top 1200ms var(--ease),
+    opacity .24s ease,
+    transform 1200ms var(--ease);
+}
+.meta{
+  position:absolute;
+  z-index:3;
+  left:30px;
+  right:30px;
+  top:164px;
+  text-align:center;
+  transition:opacity .42s ease,transform .58s var(--ease);
+}
+.title{
+  margin:0;
+  font-size:20px;
+  line-height:1.15;
+  font-weight:600;
+  letter-spacing:.01em;
+}
+.subtitle{
+  margin:2px 0 0;
+  font-size:16px;
+  line-height:1.2;
+  color:var(--muted);
+  font-weight:500;
+}
+.content{
+  position:absolute;
+  z-index:3;
+  left:30px;
+  right:30px;
+  top:264px;
+  min-height:180px;
+  display:grid;
+  align-content:start;
+  gap:14px;
+  transition:opacity .42s ease,transform .58s var(--ease);
+}
+.content-block{
+  display:none;
+}
+.content-block.is-current{
+  display:grid;
+  gap:14px;
+}
+.score{
+  display:flex;
+  justify-content:center;
+  align-items:flex-end;
+  gap:6px;
+  color:#fff;
+}
+.score strong{
+  font-size:108px;
+  line-height:.8;
+  font-weight:500;
+}
+.score span{
+  font-size:72px;
+  line-height:.84;
+  color:rgba(255,255,255,.74);
+}
+.score-note{
+  text-align:center;
+  font-size:18px;
+  color:rgba(255,255,255,.78);
+}
+.quote{
+  margin:0;
+  font-size:20px;
+  line-height:1.34;
+  letter-spacing:.01em;
+  text-wrap:balance;
+}
+.proposal-list{
+  display:grid;
+  gap:12px;
+}
+.proposal-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 16px;
+  border-radius:18px;
+  background:rgba(255,255,255,.12);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);
+  font-size:15px;
+}
+.proposal-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#ff6d48;
+  box-shadow:0 0 0 8px rgba(255,109,72,.14);
+}
+.weather-panel{
+  padding:22px 24px;
+  border-radius:28px;
+  background:rgba(255,255,255,.12);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);
+}
+.weather-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+}
+.weather-temp{
+  font-size:76px;
+  line-height:.9;
+  font-weight:500;
+}
+.weather-text{
+  margin-top:10px;
+  font-size:17px;
+  color:rgba(255,255,255,.74);
+}
+.actions{
+  position:absolute;
+  z-index:3;
+  left:28px;
+  right:28px;
+  bottom:26px;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+  transition:opacity .42s ease,transform .58s var(--ease);
+}
+.action{
+  position:relative;
+  min-width:0;
+  height:48px;
+  border:0;
+  border-radius:999px;
+  overflow:hidden;
+  color:#fff;
+  font-size:16px;
+  font-weight:500;
+  background:rgba(255,255,255,.08);
+  box-shadow:0 22px 44px rgba(0,0,0,.18);
+  -webkit-backdrop-filter:blur(20px);
+  backdrop-filter:blur(20px);
+  isolation:isolate;
+}
+.action::after{
+  background:none;
+}
+.compact-chip{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  padding:10px 16px;
+  max-width:150px;
+  border-radius:999px;
+  background:rgba(132,132,132,.38);
+  color:#fff;
+  font-size:14px;
+  font-weight:500;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);
+  opacity:0;
+  transition:opacity .18s ease;
+  z-index:3;
+}
+.bubble-label{
+  position:absolute;
+  left:18px;
+  right:18px;
+  bottom:20px;
+  text-align:center;
+  font-size:16px;
+  line-height:1.15;
+  font-weight:600;
+  text-shadow:0 3px 18px rgba(0,0,0,.24);
+  opacity:0;
+  transition:opacity .18s ease,transform .58s var(--ease);
+  z-index:3;
+}
+.bubble-card.is-next .bubble-label,
+.bubble-card.is-next2 .bubble-label,
+.bubble-card.is-prev .bubble-label{
+  opacity:1;
+}
+.bubble-card.is-active .compact-chip,
+.bubble-card.is-active .bubble-label{
+  opacity:0;
+}
+.bubble-card.is-active .title,
+.bubble-card.is-active .subtitle,
+.bubble-card.is-active .content,
+.bubble-card.is-active .actions{
+  opacity:1;
+}
+.bubble-card.is-next .compact-chip{
+  opacity:1;
+}
+.bubble-card.is-prev .compact-chip,
+.bubble-card.is-next2 .compact-chip{
+  opacity:0;
+}
+.bubble-card:not(.is-active) .meta,
+.bubble-card:not(.is-active) .content,
+.bubble-card:not(.is-active) .actions{
+  opacity:0;
+  transform:translateY(18px) scale(.98);
+}
+.bubble-card.is-active .meta .title,
+.bubble-card.is-active .meta .subtitle,
+.bubble-card.is-active .content > *,
+.bubble-card.is-active .actions > *{
+  opacity:0;
+  transform:translateY(20px);
+  animation:staggerIn .56s var(--ease) forwards;
+}
+.bubble-card.is-active .meta .title{animation-delay:.46s}
+.bubble-card.is-active .meta .subtitle{animation-delay:.54s}
+.bubble-card.is-active .content > *:nth-child(1){animation-delay:.66s}
+.bubble-card.is-active .content > *:nth-child(2){animation-delay:.74s}
+.bubble-card.is-active .content > *:nth-child(3){animation-delay:.82s}
+.bubble-card.is-active .actions > *:nth-child(1){animation-delay:.9s}
+.bubble-card.is-active .actions > *:nth-child(2){animation-delay:.98s}
+.bubble-card.is-active .actions > *:nth-child(3){animation-delay:1.06s}
+.bubble-card.is-prev{
+  --w:20px;
+  --h:20px;
+  --x:0px;
+  --y:-298px;
+  --r:999px;
+  --scale:1;
+  --opacity:1;
+  --blur:4px;
+  --saturation:.84;
+  --bg-opacity:1;
+}
+.bubble-card.is-prev .bubble-thumb,
+.bubble-card.is-prev .meta,
+.bubble-card.is-prev .content,
+.bubble-card.is-prev .actions{
+  opacity:0;
+}
+.bubble-card.is-prev .bubble-surface{
+  opacity:1;
+}
+.bubble-card.is-active{
+  --w:348px;
+  --h:var(--active-h,420px);
+  --x:0px;
+  --y:-64px;
+  --r:70px;
+  --scale:1;
+  --opacity:1;
+  --blur:0px;
+  --saturation:1;
+  --bg-opacity:.92;
+  z-index:5;
+}
+.bubble-card.is-next{
+  --w:160px;
+  --h:160px;
+  --x:0px;
+  --y:248px;
+  --r:999px;
+  --scale:1;
+  --opacity:1;
+  --blur:0px;
+  --saturation:1;
+  --bg-opacity:.26;
+  z-index:1;
+}
+.bubble-card.is-next .meta,
+.bubble-card.is-next .content,
+.bubble-card.is-next .actions{
+  opacity:0;
+}
+.bubble-card.is-next .bubble-thumb{
+  top:0;
+  width:160px;
+  height:160px;
+  opacity:1;
+}
+.bubble-card.is-next .bubble-surface{
+  opacity:0;
+}
+.bubble-card.is-next .compact-chip{
+  top:28px;
+  transform:translateX(-50%);
+}
+.bubble-card.is-next2{
+  --w:112px;
+  --h:112px;
+  --x:0px;
+  --y:380px;
+  --r:999px;
+  --scale:1;
+  --opacity:1;
+  --blur:12px;
+  --saturation:.8;
+  --bg-opacity:1;
+}
+.bubble-card.is-next2 .bubble-thumb,
+.bubble-card.is-next2 .meta,
+.bubble-card.is-next2 .content,
+.bubble-card.is-next2 .actions,
+.bubble-card.is-next2 .compact-chip{
+  opacity:0;
+}
+.bubble-card.is-next2 .bubble-surface{
+  opacity:1;
+}
+.bubble-card.is-hidden{
+  --w:84px;
+  --h:84px;
+  --x:0px;
+  --y:600px;
+  --r:999px;
+  --scale:.9;
+  --opacity:.28;
+  --blur:16px;
+  --saturation:.78;
+  --bg-opacity:.12;
+}
+.bubble-card.is-hidden .bubble-thumb,
+.bubble-card.is-hidden .meta,
+.bubble-card.is-hidden .content,
+.bubble-card.is-hidden .actions,
+.bubble-card.is-hidden .compact-chip{
+  opacity:0;
+}
+.bubble-card.is-hidden .bubble-label{
+  opacity:.42;
+}
+.prompt{
+  position:absolute;
+  left:28px;
+  right:28px;
+  bottom:26px;
+  height:72px;
+  border-radius:999px;
+  overflow:hidden;
+  background:rgba(255,255,255,.08);
+  box-shadow:0 22px 44px rgba(0,0,0,.12);
+  -webkit-backdrop-filter:blur(20px);
+  backdrop-filter:blur(20px);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 10px 0 24px;
+  z-index:4;
+  isolation:isolate;
+}
+.prompt span{
+  color:rgba(255,255,255,.84);
+  font-size:20px;
+  font-weight:500;
+}
+.prompt button{
+  position:relative;
+  z-index:2;
+  width:54px;
+  height:54px;
+  border:0;
+  border-radius:50%;
+  background:#fff;
+  color:#141414;
+  font-size:24px;
+  box-shadow:0 12px 24px rgba(95,81,52,.12);
+}
+@keyframes staggerIn{
+  to{opacity:1;transform:translateY(0)}
+}
+@media (max-width:520px){
+  body{display:block}
+  .phone{width:100vw;height:100dvh;box-shadow:none}
+}
+</style>
+</head>
+<body>
+<main class="phone" id="phone" aria-label="Vertical bubble stack prototype">
+  <div class="backdrop" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="day-pill"><span id="dayPillText">Putting</span></div>
+  <section class="stack" id="stack"></section>
+  <div class="prompt" aria-hidden="true">
+    <span>Ask anything</span>
+    <button type="button" aria-label="Voice input">◉</button>
+  </div>
+</main>
+
+<template id="bubbleTemplate">
+  <article class="bubble-card is-hidden">
+    <div class="bubble-surface" aria-hidden="true"></div>
+    <div class="bubble-thumb" aria-hidden="true"></div>
+    <div class="compact-chip"></div>
+    <div class="meta">
+      <h2 class="title"></h2>
+      <p class="subtitle"></p>
+    </div>
+    <div class="content"></div>
+    <div class="actions"></div>
+    <div class="bubble-label"></div>
+  </article>
+</template>
+
+<script>
+(()=>{
+  const items=[
+    {
+      key:'golf',
+      image:'golf-bubbles/golfBG.png',
+      chip:'Putting',
+      bubbleLabel:'Putting Session\n8 ft',
+      title:'Putting Session • 8 ft',
+      subtitle:'Putting mode is on',
+      content:[
+        {type:'score',value:'0',suffix:'/0',note:'makes'}
+      ],
+      actions:['Pause','Finish']
+    },
+    {
+      key:'compose',
+      image:'golf-bubbles/image 62841.png',
+      chip:'Composing',
+      bubbleLabel:'Drafting message\nto Sally',
+      title:'To: Amy Chen',
+      subtitle:'Re: Nori’s Groom',
+      content:[
+        {type:'quote',value:'“...keep his face rounder this time 🥺 last time felt a bit too short on the body”'}
+      ],
+      actions:['Warmer','Shorter']
+    },
+    {
+      key:'proposal',
+      image:'golf-bubbles/image 62842.png',
+      chip:'Needs input',
+      bubbleLabel:'Proposal ready\nfor review',
+      title:'Proposal ready',
+      subtitle:'One budget call still needs your sign-off',
+      content:[
+        {type:'proposal',items:[
+          ['Venue deck','Locked'],
+          ['Floral upgrade','Pending'],
+          ['Guest flow','Reviewed']
+        ]}
+      ],
+      actions:['Approve','Revise']
+    },
+    {
+      key:'weather',
+      image:'golf-bubbles/image 62843.png',
+      chip:'Weather',
+      bubbleLabel:'22° and\nsunny',
+      title:'Outdoor window',
+      subtitle:'Sunny through the afternoon',
+      content:[
+        {type:'weather',temp:'22°',label:'Clear breeze · 4 mph'}
+      ],
+      actions:['View hour','Share']
+    }
+  ];
+
+  const stack=document.getElementById('stack');
+  const dayPillText=document.getElementById('dayPillText');
+  const template=document.getElementById('bubbleTemplate');
+  const cards=[];
+  let activeIndex=0;
+  let currentPillText=items[activeIndex].chip;
+  let pillTransitionToken=0;
+  let touchStartY=0;
+  let touchDeltaY=0;
+  let isLocked=false;
+  let wheelLock=null;
+
+  function buildContent(node,data){
+    const content=node.querySelector('.content');
+    const actions=node.querySelector('.actions');
+    const title=node.querySelector('.title');
+    const subtitle=node.querySelector('.subtitle');
+    const chip=node.querySelector('.compact-chip');
+    const label=node.querySelector('.bubble-label');
+
+    title.textContent=data.title;
+    subtitle.textContent=data.subtitle;
+    chip.textContent=data.chip;
+    label.innerHTML=data.bubbleLabel.replace(/\n/g,'<br>');
+    content.innerHTML='';
+    actions.innerHTML='';
+
+    data.content.forEach(block=>{
+      const wrapper=document.createElement('div');
+      wrapper.className='content-block is-current';
+      if(block.type==='score'){
+        wrapper.innerHTML='<div class="score"><strong>'+block.value+'</strong><span>'+block.suffix+'</span></div><div class="score-note">'+block.note+'</div>';
+      }else if(block.type==='quote'){
+        wrapper.innerHTML='<p class="quote">'+block.value+'</p>';
+      }else if(block.type==='proposal'){
+        const list=document.createElement('div');
+        list.className='proposal-list';
+        block.items.forEach(([name,state])=>{
+          const row=document.createElement('div');
+          row.className='proposal-item';
+          row.innerHTML='<span>'+name+'</span><span style="display:flex;align-items:center;gap:10px"><i class="proposal-dot"></i>'+state+'</span>';
+          list.appendChild(row);
+        });
+        wrapper.appendChild(list);
+      }else if(block.type==='weather'){
+        wrapper.innerHTML='<div class="weather-panel"><div class="weather-row"><div class="weather-temp">'+block.temp+'</div><div style="font-size:18px;color:rgba(255,255,255,.72)">Sun</div></div><div class="weather-text">'+block.label+'</div></div>';
+      }
+      content.appendChild(wrapper);
+    });
+
+    data.actions.forEach(text=>{
+      const button=document.createElement('button');
+      button.type='button';
+      button.className='action';
+      button.innerHTML='<span class="action-label">'+text+'</span>';
+      actions.appendChild(button);
+    });
+  }
+
+  items.forEach(item=>{
+    const fragment=template.content.cloneNode(true);
+    const card=fragment.querySelector('.bubble-card');
+    card.style.setProperty('--image','url("'+item.image+'")');
+    buildContent(card,item);
+    stack.appendChild(fragment);
+    cards.push(card);
+  });
+
+  function measureActiveHeights(){
+    cards.forEach(card=>{
+      const currentClass=card.className;
+      card.className='bubble-card is-measuring';
+      const height=Math.ceil(card.getBoundingClientRect().height);
+      card.style.setProperty('--active-h',height+'px');
+      card.className=currentClass;
+    });
+  }
+
+  function slotFor(delta){
+    if(delta===-1) return 'is-prev';
+    if(delta===0) return 'is-active';
+    if(delta===1) return 'is-next';
+    if(delta===2) return 'is-next2';
+    return 'is-hidden';
+  }
+
+  function wrappedDistance(index){
+    return (index-activeIndex+items.length)%items.length;
+  }
+
+  function measurePillWidth(text){
+    const probe=document.createElement('span');
+    probe.style.cssText='position:absolute;left:-9999px;top:0;font:600 20px "Avenir Next","Helvetica Neue",ui-sans-serif,sans-serif;letter-spacing:.02em;white-space:nowrap;';
+    probe.textContent=text;
+    document.body.appendChild(probe);
+    const width=Math.ceil(probe.getBoundingClientRect().width)+68;
+    probe.remove();
+    return width;
+  }
+
+  function setDayPillWidth(text){
+    dayPillText.parentElement.style.setProperty('--pill-w',measurePillWidth(text)+'px');
+  }
+
+  function updateDayPill(text){
+    if(text===currentPillText) return;
+    currentPillText=text;
+    const token=++pillTransitionToken;
+    setDayPillWidth(text);
+    dayPillText.classList.add('is-exiting');
+    window.setTimeout(()=>{
+      if(token!==pillTransitionToken) return;
+      dayPillText.textContent=text;
+      dayPillText.classList.remove('is-exiting');
+      dayPillText.classList.add('is-entering');
+      requestAnimationFrame(()=>{
+        if(token!==pillTransitionToken) return;
+        dayPillText.classList.remove('is-entering');
+      });
+    },180);
+  }
+
+  function render(){
+    updateDayPill(items[activeIndex].chip);
+    const jumpCards=[];
+    cards.forEach((card,index)=>{
+      const forward=wrappedDistance(index);
+      const backward=(activeIndex-index+items.length)%items.length;
+      let slot='is-hidden';
+      if(index===activeIndex) slot='is-active';
+      else if(backward===1) slot='is-prev';
+      else if(forward===1) slot='is-next';
+      else if(forward===2) slot='is-next2';
+      const previousSlot=card.dataset.slot || 'is-hidden';
+      const shouldJump=
+        (previousSlot==='is-prev' && (slot==='is-next2' || slot==='is-hidden')) ||
+        ((previousSlot==='is-next2' || previousSlot==='is-hidden') && slot==='is-prev');
+      card.dataset.slot=slot;
+      card.className='bubble-card '+slot+(shouldJump ? ' no-transition' : '');
+      if(shouldJump) jumpCards.push(card);
+    });
+    if(jumpCards.length){
+      requestAnimationFrame(()=>{
+        jumpCards.forEach(card=>{
+          card.classList.remove('no-transition');
+        });
+      });
+    }
+  }
+
+  function navigate(direction){
+    if(isLocked) return;
+    isLocked=true;
+    activeIndex=(activeIndex+direction+items.length)%items.length;
+    render();
+    window.setTimeout(()=>{
+      isLocked=false;
+    },1200);
+  }
+
+  function onSwipeEnd(){
+    if(Math.abs(touchDeltaY)<42) return;
+    if(touchDeltaY<0) navigate(1);
+    else navigate(-1);
+  }
+
+  stack.addEventListener('touchstart',event=>{
+    const touch=event.changedTouches[0];
+    touchStartY=touch.clientY;
+    touchDeltaY=0;
+  },{passive:true});
+
+  stack.addEventListener('touchmove',event=>{
+    const touch=event.changedTouches[0];
+    touchDeltaY=touch.clientY-touchStartY;
+  },{passive:true});
+
+  stack.addEventListener('touchend',()=>{
+    onSwipeEnd();
+  });
+
+  stack.addEventListener('wheel',event=>{
+    event.preventDefault();
+    if(wheelLock) return;
+    wheelLock=window.setTimeout(()=>{
+      wheelLock=null;
+    },420);
+    if(Math.abs(event.deltaY)<16) return;
+    navigate(event.deltaY>0 ? 1 : -1);
+  },{passive:false});
+
+  window.addEventListener('keydown',event=>{
+    if(event.key==='ArrowUp') navigate(-1);
+    if(event.key==='ArrowDown') navigate(1);
+  });
+
+  measureActiveHeights();
+  setDayPillWidth(currentPillText);
+  window.addEventListener('resize',measureActiveHeights);
+  render();
+})();
+</script>
+</body>
+</html>

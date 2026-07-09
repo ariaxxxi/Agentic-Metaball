@@ -56,7 +56,12 @@ button{font:inherit;color:inherit}
   user-select:none;
   -webkit-tap-highlight-color:transparent;
   animation:float 5.5s ease-in-out infinite;
+  scale:var(--edge-scale,1);
+  transition:scale .2s ease;
+  will-change:transform,scale,left,top;
 }
+.home-bubble{cursor:grab}
+.home-bubble.is-dragging{cursor:grabbing}
 .bubble::before{
   content:"";
   position:absolute;
@@ -77,6 +82,9 @@ button{font:inherit;color:inherit}
   background:transparent;
   box-shadow:none;
   overflow:visible;
+  scale:var(--edge-scale,1);
+  transition:scale .2s ease;
+  will-change:transform,scale,left,top;
 }
 .asset-bubble::before{display:none}
 .asset-bubble img{
@@ -88,8 +96,8 @@ button{font:inherit;color:inherit}
   user-select:none;
 }
 .practice{
-  width:214px;
-  height:214px;
+  width:140px;
+  height:140px;
   right:-10px;
   top:262px;
   animation-delay:-1.3s;
@@ -99,46 +107,49 @@ button{font:inherit;color:inherit}
   background-position:center;
 }
 .practice .mist{
-  position:absolute;
-  left:0;
-  right:0;
-  bottom:-1px;
-  height:48%;
-  z-index:1;
-  background:rgba(56,75,34,.72);
-  filter:blur(14px);
-  transform:scale(1.18);
+  display:none;
 }
 .tag{
   position:absolute;
   z-index:3;
   left:50%;
-  top:26px;
+  top:16px;
   transform:translateX(-50%);
-  padding:7px 18px 8px;
+  padding:5px 12px 6px;
   border-radius:999px;
   color:#fff;
-  font-size:24px;
-  font-weight:600;
+  font-size:14px;
+  font-weight:500;
   letter-spacing:-.02em;
-  background:rgba(55,101,64,.66);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.34),0 10px 24px rgba(0,0,0,.2);
-  -webkit-backdrop-filter:blur(18px) saturate(1.25);
-  backdrop-filter:blur(18px) saturate(1.25);
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.18);
+  box-shadow:
+    inset 0 0 22px rgba(255,255,255,.18),
+    inset 0 1px 10px rgba(255,255,255,.12),
+    inset 0 -8px 16px rgba(255,255,255,.08),
+    0 22px 44px rgba(0,0,0,.16);
+  -webkit-backdrop-filter:blur(20px);
+  backdrop-filter:blur(20px);
+}
+.ai-spark{
+  display:block;
+  width:31px;
+  height:31px;
+  object-fit:contain;
 }
 .bubble-title{
   position:absolute;
   z-index:3;
-  left:18px;
-  right:18px;
-  bottom:34px;
+  left:12px;
+  right:12px;
+  bottom:20px;
   margin:0;
   color:#fff;
   text-align:center;
-  font-size:24px;
+  font-size:18px;
   line-height:1.04;
-  font-weight:600;
-  letter-spacing:-.03em;
+  font-weight:500;
+  letter-spacing:.5px;
   text-shadow:0 2px 14px rgba(0,0,0,.38);
 }
 .phone.is-opening .practice .tag{
@@ -148,8 +159,8 @@ button{font:inherit;color:inherit}
   animation:textRiseAway .48s cubic-bezier(.18,.9,.2,1) .04s forwards;
 }
 .proposal{
-  width:170px;
-  height:170px;
+  width:200px;
+  height:200px;
   right:16px;
   top:62px;
   animation-delay:-.4s;
@@ -165,16 +176,16 @@ button{font:inherit;color:inherit}
   position:absolute;
   left:44px;
   top:320px;
-  width:160px;
-  height:160px;
+  width:200px;
+  height:200px;
   animation:float 5s ease-in-out infinite;
 }
 .weather{
   position:absolute;
   right:16px;
   top:592px;
-  width:116px;
-  height:116px;
+  width:140px;
+  height:140px;
   border-radius:50%;
   animation:float 6.2s ease-in-out infinite -1.7s;
 }
@@ -194,7 +205,7 @@ button{font:inherit;color:inherit}
   backdrop-filter:blur(14px);
 }
 .detail{
-  z-index:4;
+  z-index:5;
   opacity:0;
   pointer-events:none;
   font-weight:500;
@@ -203,37 +214,38 @@ button{font:inherit;color:inherit}
     linear-gradient(180deg,rgba(8,15,7,.18),rgba(18,27,12,.08) 48%,rgba(17,23,12,.34)),
     var(--bg),
     linear-gradient(135deg,#26361a,#6e7b4c);
-  background-size:cover;
-  background-position:center;
+  background-size:cover,cover,var(--detail-bg-width,100%) var(--detail-bg-height,auto),cover;
+  background-position:center,center,var(--detail-bg-x,50%) var(--detail-bg-y,50%),center;
   clip-path:circle(var(--detail-radius,0px) at var(--detail-x,50%) var(--detail-y,50%));
   -webkit-clip-path:circle(var(--detail-radius,0px) at var(--detail-x,50%) var(--detail-y,50%));
   transition:
     clip-path .95s cubic-bezier(.35,.23,.13,.98),
-    -webkit-clip-path .95s cubic-bezier(.35,.23,.13,.98),
-    opacity .12s linear;
+    -webkit-clip-path .95s cubic-bezier(.35,.23,.13,.98);
 }
-.phone.is-detail .detail,
-.detail.is-opening{
+.phone.is-detail .detail{
   opacity:1;
   pointer-events:auto;
+  background:transparent;
 }
 .detail.is-opening{
   clip-path:circle(var(--detail-cover,120%) at var(--detail-x,50%) var(--detail-y,50%));
   -webkit-clip-path:circle(var(--detail-cover,120%) at var(--detail-x,50%) var(--detail-y,50%));
 }
 .phone.is-detail .detail{
-  clip-path:circle(var(--detail-cover,150%) at var(--detail-x,50%) var(--detail-y,50%));
-  -webkit-clip-path:circle(var(--detail-cover,150%) at var(--detail-x,50%) var(--detail-y,50%));
+  clip-path:inset(0);
+  -webkit-clip-path:inset(0);
 }
 .detail::before{
   content:"";
   position:absolute;
   inset:0;
   background:
-    radial-gradient(circle at 14% 11%,rgba(255,255,255,.36),transparent 26%),
-    linear-gradient(90deg,rgba(255,255,255,.16),transparent 44%),
     radial-gradient(circle at 92% 82%,rgba(0,0,0,.36),transparent 35%);
+  opacity:0;
   pointer-events:none;
+}
+.phone.is-detail .detail::before{
+  animation:detailHighlightFade .5s ease .08s forwards;
 }
 .detail-content{
   position:absolute;
@@ -244,10 +256,15 @@ button{font:inherit;color:inherit}
 .reveal{
   opacity:0;
   transform:translateY(24px) scale(.98);
+  animation:none;
+  transition:
+    opacity .72s cubic-bezier(.18,.9,.2,1),
+    transform .72s cubic-bezier(.18,.9,.2,1);
+  transition-delay:var(--delay,220ms);
 }
 .phone.is-detail .reveal{
-  animation:rise .72s cubic-bezier(.18,.9,.2,1) forwards;
-  animation-delay:calc(var(--i,0) * 90ms + 120ms);
+  opacity:1!important;
+  transform:translateY(0) scale(1)!important;
 }
 .title{
   margin:0;
@@ -256,10 +273,10 @@ button{font:inherit;color:inherit}
   background:linear-gradient(90deg,rgba(255,255,255,.24) 0%,#fff 54%,rgba(255,255,255,.49) 100%);
   -webkit-background-clip:text;
   background-clip:text;
-  font-size:64px;
+  font-size:48px;
   line-height:.98;
   font-weight:500;
-  letter-spacing:-.06em;
+  letter-spacing:1px;
 }
 .subtitle{
   max-width:310px;
@@ -274,6 +291,8 @@ button{font:inherit;color:inherit}
 }
 .rate-card{
   position:absolute;
+  --card-left:142px;
+  --card-top:334px;
   left:142px;
   right:auto;
   top:334px;
@@ -283,28 +302,63 @@ button{font:inherit;color:inherit}
   padding:36px 32px;
   overflow:hidden;
   color:#fff;
-  background:rgba(245,245,238,.18);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),0 24px 60px rgba(0,0,0,.22);
-  backdrop-filter:blur(18px);
+  border:0;
+  background:rgba(255,255,255,.05);
+  -webkit-backdrop-filter:blur(20px);
+  backdrop-filter:blur(20px);
+  box-shadow:
+    0 22px 44px rgba(0,0,0,.16);
+  isolation:isolate;
+}
+.rate-card::before{
+  content:"";
+  position:absolute;
+  inset:-18px;
+  z-index:0;
+  background:
+    var(--bg),
+    linear-gradient(135deg,#26361a,#6e7b4c);
+  background-size:var(--detail-bg-width,100%) var(--detail-bg-height,auto),cover;
+  background-position:
+    calc(var(--detail-bg-x,0px) - var(--card-left) + 18px) calc(var(--detail-bg-y,0px) - var(--card-top) + 18px),
+    center;
+  filter:blur(20px);
+  transform:scale(1.05);
+}
+.rate-progressive-blur{
+  display:none;
 }
 .rate-card::after{
   content:"";
   position:absolute;
-  inset:-40px;
-  background:radial-gradient(circle at 10% 18%,rgba(255,255,255,.6),transparent 26%),linear-gradient(90deg,rgba(9,13,7,.9),rgba(52,65,34,.84));
-  filter:blur(18px);
-  z-index:-1;
+  inset:0;
+  z-index:1;
+  border-radius:inherit;
+  border:1px solid rgba(255,255,255,.18);
+  box-shadow:
+    inset 0 0 22px rgba(255,255,255,.18),
+    inset 0 1px 10px rgba(255,255,255,.12),
+    inset 0 -8px 16px rgba(255,255,255,.08);
+  pointer-events:none;
 }
 .rate-card span,
-.rate-card strong{
+.rate-card strong,
+.rate-card small{
+  position:relative;
+  z-index:2;
   color:transparent;
   background:linear-gradient(90deg,rgba(255,255,255,.58) 0%,#fff 54%,rgba(255,255,255,.66) 100%);
   -webkit-background-clip:text;
   background-clip:text;
 }
-.rate-card span{display:block;font-size:28px;line-height:1.12;font-weight:500}
-.rate-card strong{display:block;margin-top:20px;font-size:74px;line-height:1;font-weight:500;letter-spacing:-.07em}
-.rate-card small{font-size:33px;font-weight:500}
+.rate-card span{display:block;font-size:20px;line-height:1.12;font-weight:500}
+.rate-card strong{display:block;margin-top:20px;font-size:64px;line-height:1;font-weight:500;letter-spacing:-.07em}
+.rate-card small{
+  display:inline-block;
+  margin-left:8px;
+  font-size:24px;
+  font-weight:500;
+}
 .stats{
   position:absolute;
   left:28px;
@@ -317,8 +371,8 @@ button{font:inherit;color:inherit}
 .stat:nth-child(1){left:0}
 .stat:nth-child(2){left:125px}
 .stat:nth-child(3){left:250px}
-.stat strong{display:block;color:#fff;font-size:40px;line-height:1;font-weight:500;letter-spacing:-.04em}
-.stat span{display:block;margin-top:13px;color:rgba(255,255,255,.72);font-size:15px;font-weight:500;letter-spacing:.07em;white-space:nowrap}
+.stat strong{display:block;color:#fff;font-size:32px;line-height:1;font-weight:500;letter-spacing:-.04em}
+.stat span{display:block;margin-top:13px;color:rgba(255,255,255,.7);font-size:13px;font-weight:500;letter-spacing:.07em;white-space:nowrap}
 .bottom{
   position:absolute;
   left:30px;
@@ -330,27 +384,100 @@ button{font:inherit;color:inherit}
   align-items:center;
 }
 .spark{
-  width:74px;
-  height:74px;
+  position:relative;
+  --glass-left:30px;
+  --glass-top:32px;
+  width:62px;
+  height:62px;
   border:0;
   border-radius:50%;
-  background:rgba(255,255,255,.2);
+  overflow:hidden;
+  background:rgba(255,255,255,.05);
   color:#fff;
   font-size:34px;
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);
-  backdrop-filter:blur(15px);
+  box-shadow:
+    0 18px 44px rgba(0,0,0,.16);
+  -webkit-backdrop-filter:blur(20px);
+  backdrop-filter:blur(20px);
+  isolation:isolate;
+}
+.spark::before,
+.start::before,
+.session-finish::before{
+  content:"";
+  position:absolute;
+  inset:-18px;
+  z-index:0;
+  background:
+    var(--bg),
+    linear-gradient(135deg,#26361a,#6e7b4c);
+  background-size:var(--detail-bg-width,100%) var(--detail-bg-height,auto),cover;
+  filter:blur(20px);
+  transform:scale(1.05);
+  pointer-events:none;
+}
+.spark::before{
+  background-position:
+    calc(var(--detail-bg-x,0px) - var(--glass-left) + 18px) calc(var(--detail-bg-y,0px) - var(--glass-top) + 18px),
+    center;
 }
 .start{
+  position:relative;
+  --glass-left:120px;
+  --glass-top:32px;
   min-width:0;
-  height:76px;
-  border:1px solid rgba(255,255,255,.28);
+  height:62px;
+  border:0;
   border-radius:999px;
-  background:rgba(255,255,255,.18);
+  overflow:hidden;
+  background:rgba(255,255,255,.05);
   color:#fff;
-  font-size:22px;
-  font-weight:500;
-  box-shadow:inset 0 0 38px rgba(255,255,255,.2),0 22px 44px rgba(0,0,0,.16);
-  backdrop-filter:blur(18px);
+  font-size:18px;
+  font-weight:600;
+  box-shadow:
+    0 22px 44px rgba(0,0,0,.16);
+  -webkit-backdrop-filter:blur(20px);
+  backdrop-filter:blur(20px);
+  isolation:isolate;
+}
+.start::before{
+  background-position:
+    calc(var(--detail-bg-x,0px) - var(--glass-left) + 18px) calc(var(--detail-bg-y,0px) - var(--glass-top) + 18px),
+    center;
+}
+.spark,
+.start,
+.session-finish{
+  position:relative;
+}
+.spark::after,
+.start::after,
+.session-finish::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  border-radius:inherit;
+  border:1px solid rgba(255,255,255,.18);
+  background:
+    radial-gradient(circle at 50% -6px,rgba(255,255,255,.58) 0,rgba(255,255,255,.24) 32%,rgba(255,255,255,0) 66%);
+  box-shadow:
+    inset 0 0 20px rgba(255,255,255,.2),
+    inset 0 1px 8px rgba(255,255,255,.12),
+    inset 0 -8px 14px rgba(255,255,255,.08);
+  pointer-events:none;
+}
+.spark-label,
+.start-label,
+.session-finish-label{
+  position:relative;
+  z-index:2;
+}
+.spark-label{
+  display:grid;
+  place-items:center;
+  width:100%;
+  height:100%;
 }
 .close{
   position:absolute;
@@ -367,6 +494,351 @@ button{font:inherit;color:inherit}
   backdrop-filter:blur(12px);
 }
 .phone.is-detail .close{opacity:1;pointer-events:auto}
+.session{
+  position:absolute;
+  inset:0;
+  z-index:7;
+  display:grid;
+  grid-template-rows:1fr auto;
+  padding:0 32px 31px;
+  color:#fff;
+  opacity:0;
+  pointer-events:none;
+  font-weight:500;
+  background:linear-gradient(180deg,rgba(8,12,5,.08),rgba(18,27,10,.18));
+  transition:opacity .44s ease;
+}
+.phone.is-session .session{
+  opacity:1;
+  pointer-events:auto;
+}
+.phone.is-results .session{
+  opacity:0;
+  pointer-events:none;
+}
+.phone.is-session .detail-content,
+.phone.is-session .close{
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .28s ease;
+}
+.phone.is-results .detail-content,
+.phone.is-results .close{
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .28s ease;
+}
+.phone.is-session .detail::before{opacity:0}
+.phone.is-results .detail::before{opacity:0}
+.session-content{
+  align-self:center;
+  display:grid;
+  justify-items:center;
+  transform:translateY(-28px);
+}
+.session-kicker{
+  margin:0 0 190px;
+  color:rgba(255,255,255,.82);
+  font-size:13px;
+  line-height:1;
+  font-weight:500;
+  letter-spacing:.28em;
+}
+.session-score{
+  display:flex;
+  align-items:baseline;
+  gap:24px;
+  color:rgba(255,255,255,.9);
+  font-weight:500;
+  letter-spacing:-.07em;
+}
+.session-score strong{
+  font-size:128px;
+  line-height:.8;
+  font-weight:500;
+}
+.session-score-value{
+  margin:0;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:inherit;
+  font:inherit;
+  line-height:inherit;
+  cursor:pointer;
+}
+.session-score span{
+  font-size:76px;
+  line-height:1;
+  font-weight:500;
+}
+.session-score-target{
+  margin:0;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:inherit;
+  font:inherit;
+  line-height:inherit;
+  cursor:pointer;
+}
+.session-label{
+  margin:24px 0 0;
+  color:rgba(255,255,255,.88);
+  font-size:17px;
+  line-height:1;
+  font-weight:500;
+  letter-spacing:.08em;
+}
+.session-finish{
+  --glass-left:54px;
+  --glass-top:781px;
+  width:100%;
+  max-width:294px;
+  height:62px;
+  justify-self:center;
+  border:0;
+  border-radius:999px;
+  color:#fff;
+  background:rgba(255,255,255,.05);
+  box-shadow:
+    0 22px 44px rgba(0,0,0,.18);
+  -webkit-backdrop-filter:blur(20px);
+  backdrop-filter:blur(20px);
+  font-size:16px;
+  font-weight:500;
+  opacity:0;
+  transform:translateY(24px);
+  transition:
+    opacity .72s cubic-bezier(.18,.9,.2,1) 480ms,
+    transform .72s cubic-bezier(.18,.9,.2,1) 480ms;
+  overflow:hidden;
+  isolation:isolate;
+}
+.session-finish::before{
+  background-position:
+    calc(var(--detail-bg-x,0px) - var(--glass-left) + 18px) calc(var(--detail-bg-y,0px) - var(--glass-top) + 18px),
+    center;
+}
+.phone.is-session .session-finish{
+  opacity:1;
+  transform:translateY(0);
+}
+.results{
+  position:absolute;
+  inset:0;
+  z-index:7;
+  padding:0 28px 30px;
+  color:#fff;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .36s ease;
+}
+.phone.is-results .results{
+  opacity:1;
+  pointer-events:auto;
+}
+.results-panel{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:118px 0 32px;
+}
+.results-reveal{
+  opacity:0;
+  transform:translateY(24px) scale(.98);
+  transition:
+    opacity .72s cubic-bezier(.18,.9,.2,1),
+    transform .72s cubic-bezier(.18,.9,.2,1);
+  transition-delay:var(--delay,180ms);
+}
+.phone.is-results .results-reveal{
+  opacity:1;
+  transform:translateY(0) scale(1);
+}
+.results-heading{
+  position:relative;
+  margin:-20px 0 0;
+  text-align:center;
+  color:rgba(255,255,255,.84);
+  font-size:13px;
+  font-weight:500;
+  letter-spacing:.28em;
+}
+.results-ring{
+  position:relative;
+  width:358px;
+  height:358px;
+  margin-top:0;
+}
+.results-ring-svg{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  overflow:visible;
+  transform:rotate(-90deg);
+}
+.results-ring-track,
+.results-ring-progress{
+  fill:none;
+  stroke-width:16;
+}
+.results-ring-track{
+  stroke:rgba(211,235,223,.26);
+}
+.results-ring-progress{
+  stroke:#c0ffcb;
+  stroke-linecap:round;
+  stroke-dasharray:0 9999;
+  transition:stroke-dasharray .5s cubic-bezier(.35,.23,.13,.98);
+}
+.results-score{
+  position:relative;
+  margin-top:-218px;
+  display:flex;
+  justify-content:center;
+  align-items:flex-end;
+  gap:10px;
+  font-weight:500;
+  letter-spacing:-.07em;
+}
+.results-score-value{
+  color:#fff;
+  font-size:72px;
+  line-height:.82;
+  font-weight:500;
+}
+.results-score-percent{
+  color:#fff;
+  font-size:32px;
+  line-height:1;
+  margin-bottom:10px;
+  font-weight:300;
+}
+.results-subtitle{
+  position:relative;
+  margin:28px 0 0;
+  text-align:center;
+  color:rgba(255,255,255,.84);
+  font-size:17px;
+  font-weight:500;
+}
+.results-stats{
+  position:relative;
+  width:100%;
+  max-width:330px;
+  margin-top:114px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:20px;
+  text-align:center;
+}
+.results-stat-value{
+  display:block;
+  font-size:32px;
+  line-height:1;
+  font-weight:500;
+  letter-spacing:-.04em;
+}
+.results-stat-label{
+  display:block;
+  margin-top:13px;
+  color:rgba(255,255,255,.7);
+  font-size:13px;
+  font-weight:500;
+  letter-spacing:.07em;
+}
+.results-actions{
+  position:absolute;
+  left:50%;
+  bottom:22px;
+  width:min(358px,calc(100% - 44px));
+  transform:translateX(-50%);
+  display:grid;
+  gap:14px;
+}
+.results-action{
+  position:relative;
+  height:62px;
+  border:0;
+  border-radius:999px;
+  overflow:hidden;
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  font-size:16px;
+  font-weight:500;
+  -webkit-backdrop-filter:blur(20px);
+  backdrop-filter:blur(20px);
+  box-shadow:0 22px 44px rgba(0,0,0,.18);
+  isolation:isolate;
+}
+.results-action::before{
+  content:"";
+  position:absolute;
+  inset:-18px;
+  z-index:0;
+  background:
+    var(--bg),
+    linear-gradient(135deg,#26361a,#6e7b4c);
+  background-size:var(--detail-bg-width,100%) var(--detail-bg-height,auto),cover;
+  background-position:
+    calc(var(--detail-bg-x,0px) - var(--glass-left) + 18px) calc(var(--detail-bg-y,0px) - var(--glass-top) + 18px),
+    center;
+  filter:blur(20px);
+  transform:scale(1.05);
+}
+.results-action::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  border-radius:inherit;
+  border:1px solid rgba(255,255,255,.18);
+  background:
+    radial-gradient(circle at 50% -6px,rgba(255,255,255,.58) 0,rgba(255,255,255,.24) 32%,rgba(255,255,255,0) 66%);
+  box-shadow:
+    inset 0 0 20px rgba(255,255,255,.14),
+    inset 0 1px 8px rgba(255,255,255,.08),
+    inset 0 -8px 14px rgba(255,255,255,.06);
+}
+.results-action-label{
+  position:relative;
+  z-index:2;
+}
+.results-action-primary{
+  background:rgba(192,255,203,.22);
+}
+.results-action-primary::after{
+  border-color:rgba(192,255,203,.32);
+  background:
+    radial-gradient(circle at 50% -6px,rgba(192,255,203,.72) 0,rgba(192,255,203,.28) 32%,rgba(192,255,203,0) 66%);
+  box-shadow:
+    inset 0 0 20px rgba(192,255,203,.5),
+    inset 0 1px 8px rgba(255,255,255,.08),
+    inset 0 -8px 14px rgba(192,255,203,.08);
+}
+.results-action:not(.results-action-primary)::after{
+  background:none;
+}
+.phone.is-results .expand-sheet.is-settled{
+  filter:blur(20px);
+  transform:scale(1.06);
+}
+.session-reveal{
+  opacity:0;
+  transform:translateY(24px);
+  transition:
+    opacity .72s cubic-bezier(.18,.9,.2,1),
+    transform .72s cubic-bezier(.18,.9,.2,1);
+  transition-delay:var(--delay,180ms);
+}
+.phone.is-session .session-reveal{
+  opacity:1;
+  transform:translateY(0);
+}
 .expand-sheet{
   z-index:8;
   display:none;
@@ -383,14 +855,24 @@ button{font:inherit;color:inherit}
     linear-gradient(135deg,#26361a,#6e7b4c);
   background-size:cover;
   background-position:center;
-  will-change:left,top,width,height,border-radius,opacity;
+  will-change:left,top,width,height,opacity;
 }
-.phone.is-opening .expand-sheet{display:block;animation:bubbleImageExpand .95s cubic-bezier(.35,.23,.13,.98) forwards}
+.phone.is-opening .expand-sheet{display:block;animation:bubbleImageExpand 1.08s cubic-bezier(.35,.23,.13,.98) forwards}
+.expand-sheet.is-settled{
+  z-index:4;
+  display:block;
+  animation:none;
+  transition:filter .62s ease,transform .62s ease;
+}
+.phone.is-session .expand-sheet.is-settled{
+  filter:blur(20px);
+  transform:scale(1.06);
+}
 .expand-sheet::after{
   content:"";
   position:absolute;
   inset:0;
-  background:linear-gradient(180deg,rgba(255,255,255,.16),transparent 32%,rgba(10,18,8,.34));
+  background:linear-gradient(180deg,transparent 32%,rgba(10,18,8,.34));
 }
 @keyframes bubbleImageExpand{
   0%{
@@ -401,18 +883,21 @@ button{font:inherit;color:inherit}
     border-radius:50%;
     opacity:1;
   }
-  82%{opacity:1}
+  88%{opacity:1}
   100%{
-    left:0;
-    top:0;
-    width:100%;
-    height:100%;
-    border-radius:0;
-    opacity:0;
+    left:var(--detail-final-left,0px);
+    top:var(--detail-final-top,0px);
+    width:var(--detail-target-diameter,1048px);
+    height:var(--detail-target-diameter,1048px);
+    border-radius:50%;
+    opacity:1;
   }
 }
 @keyframes rise{
   to{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes detailHighlightFade{
+  to{opacity:1}
 }
 @keyframes textFloatAway{
   to{opacity:0;transform:translate3d(-50%,-28px,0) scale(.94);filter:blur(5px)}
@@ -436,55 +921,100 @@ button{font:inherit;color:inherit}
 <body>
 <main class="phone" id="phone" aria-label="Golf practice flow prototype">
   <section class="home" aria-label="Bubble overview">
-    <div class="assistant asset-bubble" aria-hidden="true">
+    <div class="assistant asset-bubble home-bubble" data-home-bubble aria-hidden="true">
       <img src="golf-bubbles/image 62840.png" alt="">
     </div>
 
-    <button class="bubble proposal asset-bubble" type="button" aria-label="Proposal ready for review">
+    <button class="bubble proposal asset-bubble home-bubble" data-home-bubble type="button" aria-label="Proposal ready for review">
       <img src="golf-bubbles/image 62842.png" alt="">
     </button>
 
-    <button class="bubble practice" id="practiceBubble" type="button" aria-label="Open putting practice goal">
+    <button class="bubble practice home-bubble" data-home-bubble id="practiceBubble" type="button" aria-label="Open putting practice goal">
       <span class="bg" aria-hidden="true"></span>
       <span class="mist" aria-hidden="true"></span>
       <span class="tag">Putting</span>
       <span class="bubble-title">Practice<br>Goal</span>
     </button>
 
-    <button class="bubble compose asset-bubble" type="button" aria-label="Crafting message to Sally">
+    <button class="bubble compose asset-bubble home-bubble" data-home-bubble type="button" aria-label="Crafting message to Sally">
       <img src="golf-bubbles/image 62841.png" alt="">
     </button>
 
-    <div class="weather asset-bubble" aria-label="22 degrees and sunny">
+    <div class="weather asset-bubble home-bubble" data-home-bubble aria-label="22 degrees and sunny">
       <img src="golf-bubbles/image 62843.png" alt="">
     </div>
-    <button class="spark-home" type="button" aria-label="Assistant">✦</button>
   </section>
+
+  <button class="spark-home" type="button" aria-label="Assistant"><img class="ai-spark" src="golf-bubbles/ai-stars.png" alt="" aria-hidden="true"></button>
 
   <div class="expand-sheet" id="expandSheet" aria-hidden="true"></div>
 
   <section class="detail" aria-label="Putting goal today">
     <div class="detail-content">
-      <h1 class="title reveal" style="--i:0">Putting goal<br>today</h1>
-      <p class="subtitle reveal" style="--i:1">A few focused minutes on the mat to keep your stroke sharp between rounds.</p>
+      <h1 class="title reveal" style="--delay:220ms">Putting goal<br>today</h1>
+      <p class="subtitle reveal" style="--delay:310ms">A few focused minutes on the mat to keep your stroke sharp between rounds.</p>
 
-      <div class="rate-card reveal" style="--i:2">
+      <div class="rate-card reveal" style="--delay:400ms">
+        <div class="rate-progressive-blur" aria-hidden="true">
+          <i style="--blur:2px;--alpha:.28;--from:64%;--mid:72%;--to:88%"></i>
+          <i style="--blur:4px;--alpha:.34;--from:68%;--mid:78%;--to:94%"></i>
+          <i style="--blur:6px;--alpha:.42;--from:72%;--mid:84%;--to:100%"></i>
+          <i style="--blur:8px;--alpha:.5;--from:76%;--mid:90%;--to:108%"></i>
+          <i style="--blur:10px;--alpha:.58;--from:80%;--mid:96%;--to:116%"></i>
+        </div>
         <span>Make rate<br>8 ft</span>
         <strong>68<small>%</small></strong>
       </div>
 
-      <div class="stats reveal" style="--i:3">
+      <div class="stats reveal" style="--delay:490ms">
         <div class="stat"><strong>240</strong><span>PUTTS</span></div>
         <div class="stat"><strong>12</strong><span>DAY STREAK</span></div>
         <div class="stat"><strong>8<small> ft</small></strong><span>AVG MAKE</span></div>
       </div>
 
-      <div class="bottom reveal" style="--i:4">
-        <button class="spark" type="button" aria-label="Assistant">✦</button>
-        <button class="start" type="button">Start practice</button>
+      <div class="bottom reveal" style="--delay:580ms">
+        <button class="spark" type="button" aria-label="Assistant"><span class="spark-label"><img class="ai-spark" src="golf-bubbles/ai-stars.png" alt="" aria-hidden="true"></span></button>
+        <button class="start" type="button"><span class="start-label">Start practice</span></button>
       </div>
     </div>
     <button class="close" id="closeDetail" type="button" aria-label="Back to bubbles">×</button>
+  </section>
+
+  <section class="session" aria-label="Putting practice session">
+    <div class="session-content">
+      <p class="session-kicker session-reveal" style="--delay:180ms">SESSION • 8 FT</p>
+      <div class="session-score session-reveal" style="--delay:280ms" aria-label="0 out of 0 makes">
+        <button class="session-score-value" id="sessionMakesButton" type="button" aria-label="Increase makes by one"><strong id="sessionMakesValue">0</strong></button><button class="session-score-target" id="sessionTargetButton" type="button" aria-label="Increase attempts by one"><span>/<span id="sessionTargetValue">0</span></span></button>
+      </div>
+      <p class="session-label session-reveal" style="--delay:380ms">makes</p>
+    </div>
+    <button class="session-finish" id="finishSession" type="button"><span class="session-finish-label">Finish</span></button>
+  </section>
+
+  <section class="results" aria-label="Practice results">
+    <div class="results-panel">
+      <p class="results-heading results-reveal" style="--delay:180ms">SESSION COMPLETE</p>
+      <div class="results-ring results-reveal" style="--delay:260ms" aria-hidden="true">
+        <svg class="results-ring-svg" viewBox="0 0 358 358" aria-hidden="true">
+          <circle class="results-ring-track" cx="179" cy="179" r="136"></circle>
+          <circle class="results-ring-progress" id="resultsRingProgress" cx="179" cy="179" r="136"></circle>
+        </svg>
+      </div>
+      <div class="results-score results-reveal" style="--delay:320ms" aria-label="Session completion percentage">
+        <span class="results-score-value" id="resultsPercentValue">0</span>
+        <span class="results-score-percent">%</span>
+      </div>
+      <p class="results-subtitle results-reveal" id="resultsSubtitle" style="--delay:390ms">0 of 0 made</p>
+      <div class="results-stats results-reveal" style="--delay:460ms">
+        <div><span class="results-stat-value" id="resultsMadeValue">0</span><span class="results-stat-label">MADE</span></div>
+        <div><span class="results-stat-value" id="resultsMissedValue">0</span><span class="results-stat-label">MISSED</span></div>
+        <div><span class="results-stat-value" id="resultsStreakValue">13</span><span class="results-stat-label">STREAK</span></div>
+      </div>
+      <div class="results-actions">
+        <button class="results-action results-action-primary results-reveal" id="shareResultButton" style="--delay:540ms;--glass-left:22px;--glass-top:1295px" type="button"><span class="results-action-label">Share result</span></button>
+        <button class="results-action results-reveal" id="doneResultButton" style="--delay:700ms;--glass-left:22px;--glass-top:1471px" type="button"><span class="results-action-label">Done</span></button>
+      </div>
+    </div>
   </section>
 </main>
 
@@ -496,12 +1026,30 @@ button{font:inherit;color:inherit}
   const detail=document.querySelector('.detail');
   const shared=document.getElementById('expandSheet');
   const close=document.getElementById('closeDetail');
-  let drag=null;
-  let suppressBubbleClick=false;
+  const start=document.querySelector('.start');
+  const finish=document.getElementById('finishSession');
+  const makesButton=document.getElementById('sessionMakesButton');
+  const makesValue=document.getElementById('sessionMakesValue');
+  const targetButton=document.getElementById('sessionTargetButton');
+  const targetValue=document.getElementById('sessionTargetValue');
+  const resultsPercentValue=document.getElementById('resultsPercentValue');
+  const resultsSubtitle=document.getElementById('resultsSubtitle');
+  const resultsMadeValue=document.getElementById('resultsMadeValue');
+  const resultsMissedValue=document.getElementById('resultsMissedValue');
+  const resultsRingProgress=document.getElementById('resultsRingProgress');
+  const doneResultButton=document.getElementById('doneResultButton');
+  const shareResultButton=document.getElementById('shareResultButton');
+  const homeBubbles=Array.from(home.querySelectorAll('[data-home-bubble]'));
+  const edgeState=new WeakMap();
+  let bubbleDrag=null;
   let pan=null;
   let panX=0, panY=0, targetPanX=0, targetPanY=0;
   let transitionToken=0;
+  let makesCount=0;
+  let targetCount=0;
   const panLimit=92;
+  const resultsRingRadius=136;
+  const resultsRingCircumference=2*Math.PI*resultsRingRadius;
 
   function clamp(value,min,max){
     return Math.max(min,Math.min(max,value));
@@ -513,6 +1061,79 @@ button{font:inherit;color:inherit}
     phone.style.setProperty('--stage-h',phoneRect.height.toFixed(2)+'px');
   }
 
+  function ensureHomeBubbleLayout(){
+    const phoneRect=phone.getBoundingClientRect();
+    homeBubbles.forEach(node=>{
+      if(node.dataset.layoutReady==='true') return;
+      const rect=node.getBoundingClientRect();
+      node.style.left=(rect.left-phoneRect.left-panX).toFixed(2)+'px';
+      node.style.top=(rect.top-phoneRect.top-panY).toFixed(2)+'px';
+      node.style.width=rect.width.toFixed(2)+'px';
+      node.style.height=rect.height.toFixed(2)+'px';
+      node.style.right='auto';
+      node.style.bottom='auto';
+      node.dataset.layoutReady='true';
+      edgeState.set(node,1);
+    });
+  }
+
+  function clampHomeBubble(node,left,top){
+    const minLeft=-panX;
+    const minTop=-panY;
+    const maxLeft=phone.clientWidth-panX-node.offsetWidth;
+    const maxTop=phone.clientHeight-panY-node.offsetHeight;
+    return {
+      left:clamp(left,minLeft,maxLeft),
+      top:clamp(top,minTop,maxTop)
+    };
+  }
+
+  function keepHomeBubbleVisible(node){
+    const phoneRect=phone.getBoundingClientRect();
+    const rect=node.getBoundingClientRect();
+    let left=parseFloat(node.style.left)||0;
+    let top=parseFloat(node.style.top)||0;
+    if(rect.left<phoneRect.left) left += phoneRect.left-rect.left;
+    if(rect.top<phoneRect.top) top += phoneRect.top-rect.top;
+    if(rect.right>phoneRect.right) left -= rect.right-phoneRect.right;
+    if(rect.bottom>phoneRect.bottom) top -= rect.bottom-phoneRect.bottom;
+    const next=clampHomeBubble(node,left,top);
+    node.style.left=next.left.toFixed(2)+'px';
+    node.style.top=next.top.toFixed(2)+'px';
+  }
+
+  function updateHomeBubbleEdgeScale(){
+    const phoneRect=phone.getBoundingClientRect();
+    const edgeBand=86;
+    homeBubbles.forEach(node=>{
+      keepHomeBubbleVisible(node);
+      const rect=node.getBoundingClientRect();
+      const centerX=rect.left-phoneRect.left+rect.width*.5;
+      const centerY=rect.top-phoneRect.top+rect.height*.5;
+      const edgeDistance=Math.min(centerX,phoneRect.width-centerX,centerY,phoneRect.height-centerY);
+      const edgeT=Math.max(0,Math.min(1,(edgeBand-edgeDistance)/edgeBand));
+      const targetScale=1-edgeT*.4;
+      const current=edgeState.get(node) ?? 1;
+      const next=current+(targetScale-current)*.18;
+      edgeState.set(node,next);
+      node.style.setProperty('--edge-scale',next.toFixed(4));
+    });
+  }
+
+  function settleExpandedBackground(){
+    const finalLeft=phone.style.getPropertyValue('--detail-final-left');
+    const finalTop=phone.style.getPropertyValue('--detail-final-top');
+    const targetDiameter=phone.style.getPropertyValue('--detail-target-diameter');
+    if(finalLeft && finalTop && targetDiameter){
+      shared.style.left=finalLeft;
+      shared.style.top=finalTop;
+      shared.style.width=targetDiameter;
+      shared.style.height=targetDiameter;
+    }
+    shared.classList.add('is-settled');
+    phone.classList.remove('is-opening');
+  }
+
   function animatePan(){
     panX += (targetPanX-panX)*.22;
     panY += (targetPanY-panY)*.22;
@@ -521,8 +1142,10 @@ button{font:inherit;color:inherit}
     home.style.setProperty('--pan-x',panX.toFixed(2)+'px');
     home.style.setProperty('--pan-y',panY.toFixed(2)+'px');
     updateSharedBackground();
+    updateHomeBubbleEdgeScale();
     requestAnimationFrame(animatePan);
   }
+  ensureHomeBubbleLayout();
   requestAnimationFrame(animatePan);
 
   function openPractice(){
@@ -534,40 +1157,99 @@ button{font:inherit;color:inherit}
     const y=bubbleRect.top-phoneRect.top+bubbleRect.height*.5;
     const radius=bubbleRect.width*.5;
     const diameter=radius*2;
-    const farthest=Math.max(
-      Math.hypot(x,y),
-      Math.hypot(phoneRect.width-x,y),
-      Math.hypot(x,phoneRect.height-y),
-      Math.hypot(phoneRect.width-x,phoneRect.height-y)
-    );
     phone.style.setProperty('--detail-x',x.toFixed(2)+'px');
     phone.style.setProperty('--detail-y',y.toFixed(2)+'px');
     phone.style.setProperty('--detail-radius',radius.toFixed(2)+'px');
-    const cover=Math.max(farthest+180,Math.hypot(phoneRect.width,phoneRect.height));
+    const stageWidth=Math.max(phoneRect.width, window.innerWidth || 0, document.documentElement.clientWidth || 0, 402);
+    const stageHeight=Math.max(phoneRect.height, window.innerHeight || 0, document.documentElement.clientHeight || 0, 874);
+    const targetDiameter=stageHeight*1.2;
+    const cover=targetDiameter*.5;
     phone.style.setProperty('--detail-cover',cover.toFixed(2)+'px');
     phone.style.setProperty('--detail-diameter',diameter.toFixed(2)+'px');
     phone.style.setProperty('--detail-left',(x-radius).toFixed(2)+'px');
     phone.style.setProperty('--detail-top',(y-radius).toFixed(2)+'px');
+    phone.style.setProperty('--detail-target-diameter',targetDiameter.toFixed(2)+'px');
+    phone.style.setProperty('--detail-final-left',(stageWidth*.5-cover).toFixed(2)+'px');
+    phone.style.setProperty('--detail-final-top',(stageHeight*.5-cover).toFixed(2)+'px');
+    const bgWidth=targetDiameter;
+    const bgHeight=bgWidth*(874/402);
+    phone.style.setProperty('--detail-bg-width',bgWidth.toFixed(2)+'px');
+    phone.style.setProperty('--detail-bg-height',bgHeight.toFixed(2)+'px');
+    phone.style.setProperty('--detail-bg-x',(stageWidth*.5-bgWidth*.5).toFixed(2)+'px');
+    phone.style.setProperty('--detail-bg-y',(stageHeight*.5-bgHeight*.5).toFixed(2)+'px');
     const token=++transitionToken;
+    shared.classList.remove('is-settled');
     shared.style.display='block';
     detail.classList.add('is-opening');
     phone.classList.add('is-opening');
     window.setTimeout(()=>{
       if(token!==transitionToken) return;
       phone.classList.add('is-detail');
-    },760);
+      resetPracticeSession();
+      phone.classList.add('is-session');
+    },1080);
     window.setTimeout(()=>{
       if(token!==transitionToken) return;
-      phone.classList.remove('is-opening');
-      shared.style.display='none';
-    },980);
+      settleExpandedBackground();
+    },1180);
   }
 
   function closePractice(){
     transitionToken++;
-    phone.classList.remove('is-detail','is-opening');
+    phone.classList.remove('is-detail','is-opening','is-session','is-results');
     detail.classList.remove('is-opening');
+    shared.classList.remove('is-settled');
     shared.style.display='none';
+    shared.style.left='';
+    shared.style.top='';
+    shared.style.width='';
+    shared.style.height='';
+  }
+
+  function resetPracticeSession(){
+    makesCount=0;
+    targetCount=0;
+    makesValue.textContent=String(makesCount);
+    targetValue.textContent=String(targetCount);
+  }
+
+  function startPracticeSession(){
+    if(!phone.classList.contains('is-detail')) return;
+    if(phone.classList.contains('is-opening')) settleExpandedBackground();
+    resetPracticeSession();
+    phone.classList.remove('is-results');
+    phone.classList.add('is-session');
+  }
+
+  function finishPracticeSession(){
+    const safeTarget=Math.max(targetCount,0);
+    const safeMakes=Math.max(0,Math.min(makesCount,safeTarget));
+    const missed=Math.max(0,safeTarget-safeMakes);
+    const percent=safeTarget>0 ? Math.round((safeMakes/safeTarget)*100) : 0;
+    resultsPercentValue.textContent=String(percent);
+    resultsSubtitle.textContent=safeMakes+' of '+safeTarget+' made';
+    resultsMadeValue.textContent=String(safeMakes);
+    resultsMissedValue.textContent=String(missed);
+    const progressLength=resultsRingCircumference*(percent/100);
+    resultsRingProgress.style.strokeDasharray='0 '+resultsRingCircumference.toFixed(2);
+    phone.classList.remove('is-session');
+    phone.classList.add('is-results');
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        if(!phone.classList.contains('is-results')) return;
+        resultsRingProgress.style.strokeDasharray=progressLength.toFixed(2)+' '+resultsRingCircumference.toFixed(2);
+      });
+    });
+  }
+
+  function incrementMakes(){
+    makesCount += 1;
+    makesValue.textContent=String(makesCount);
+  }
+
+  function incrementTarget(){
+    targetCount += 1;
+    targetValue.textContent=String(targetCount);
   }
 
   phone.addEventListener('pointerdown', event=>{
@@ -594,36 +1276,46 @@ button{font:inherit;color:inherit}
     if(pan && pan.id===event.pointerId) pan=null;
   });
 
-  bubble.addEventListener('pointerdown', event=>{
-    suppressBubbleClick=false;
-    drag={
-      id:event.pointerId,
-      startX:event.clientX,
-      startY:event.clientY,
-      moved:false
-    };
-    bubble.setPointerCapture(event.pointerId);
-  });
-  bubble.addEventListener('pointermove', event=>{
-    if(!drag || drag.id!==event.pointerId) return;
-    if(Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY)>8){
-      drag.moved=true;
-      suppressBubbleClick=true;
-    }
-  });
-  bubble.addEventListener('pointerup', event=>{
-    if(!drag || drag.id!==event.pointerId) return;
-    const shouldOpen=!drag.moved;
-    drag=null;
-    if(shouldOpen) openPractice();
-  });
-  bubble.addEventListener('click', event=>{
-    if(suppressBubbleClick){
-      event.preventDefault();
-      suppressBubbleClick=false;
-      return;
-    }
-    openPractice();
+  homeBubbles.forEach(node=>{
+    node.addEventListener('pointerdown', event=>{
+      if(phone.classList.contains('is-opening') || phone.classList.contains('is-detail')) return;
+      ensureHomeBubbleLayout();
+      event.stopPropagation();
+      const left=parseFloat(node.style.left)||0;
+      const top=parseFloat(node.style.top)||0;
+      bubbleDrag={
+        node,
+        id:event.pointerId,
+        startX:event.clientX,
+        startY:event.clientY,
+        originLeft:left,
+        originTop:top,
+        moved:false
+      };
+      node.classList.add('is-dragging');
+      node.setPointerCapture(event.pointerId);
+    });
+    node.addEventListener('pointermove', event=>{
+      if(!bubbleDrag || bubbleDrag.id!==event.pointerId || bubbleDrag.node!==node) return;
+      const dx=event.clientX-bubbleDrag.startX;
+      const dy=event.clientY-bubbleDrag.startY;
+      if(Math.hypot(dx,dy)>6) bubbleDrag.moved=true;
+      const next=clampHomeBubble(node,bubbleDrag.originLeft+dx,bubbleDrag.originTop+dy);
+      node.style.left=next.left.toFixed(2)+'px';
+      node.style.top=next.top.toFixed(2)+'px';
+    });
+    node.addEventListener('pointerup', event=>{
+      if(!bubbleDrag || bubbleDrag.id!==event.pointerId || bubbleDrag.node!==node) return;
+      const shouldOpen=node===bubble && !bubbleDrag.moved;
+      node.classList.remove('is-dragging');
+      bubbleDrag=null;
+      if(shouldOpen) openPractice();
+    });
+    node.addEventListener('pointercancel', event=>{
+      if(!bubbleDrag || bubbleDrag.id!==event.pointerId || bubbleDrag.node!==node) return;
+      node.classList.remove('is-dragging');
+      bubbleDrag=null;
+    });
   });
   bubble.addEventListener('keydown', event=>{
     if(event.key==='Enter' || event.key===' '){
@@ -632,10 +1324,23 @@ button{font:inherit;color:inherit}
     }
   });
   close.addEventListener('click', closePractice);
+  start.addEventListener('click', startPracticeSession);
+  finish.addEventListener('click', finishPracticeSession);
+  makesButton.addEventListener('click', incrementMakes);
+  targetButton.addEventListener('click', incrementTarget);
+  doneResultButton.addEventListener('click', closePractice);
+  shareResultButton.addEventListener('click', ()=>{});
   window.addEventListener('keydown', event=>{
-    if(event.key==='Escape') closePractice();
+    if(event.key==='Escape'){
+      if(phone.classList.contains('is-results')) closePractice();
+      else if(phone.classList.contains('is-session')) finishPracticeSession();
+      else closePractice();
+    }
   });
-  window.addEventListener('resize', updateSharedBackground);
+  window.addEventListener('resize', ()=>{
+    updateSharedBackground();
+    updateHomeBubbleEdgeScale();
+  });
 })();
 </script>
 </body>
