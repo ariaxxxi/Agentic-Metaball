@@ -93,7 +93,7 @@ button{font:inherit;color:inherit}
   background:
     linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.04) 28%,rgba(30,24,14,.1) 100%),
     var(--stack-bg-image,none) center/cover no-repeat;
-  filter:blur(46px) saturate(1.04);
+  filter:blur(20px) saturate(1.04);
   transform:scale(1.16);
   opacity:0;
   transition:
@@ -669,7 +669,7 @@ button{font:inherit;color:inherit}
 }
 .day-pill{
   position:absolute;
-  top:40px;
+  top:var(--pill-top,40px);
   left:50%;
   transform:translateX(-50%);
   width:var(--pill-w,118px);
@@ -892,12 +892,12 @@ button{font:inherit;color:inherit}
 }
 .bubble-card.is-active .content,
 .bubble-card.is-measuring .content{
-  margin-top:44px;
+  margin-top:20px;
   min-height:0;
 }
 .bubble-card.is-active .actions,
 .bubble-card.is-measuring .actions{
-  margin-top:24px;
+  margin-top:20px;
 }
 .bubble-card:not(.is-active) .bubble-surface{
   opacity:1;
@@ -970,6 +970,7 @@ button{font:inherit;color:inherit}
   align-items:flex-end;
   gap:6px;
   color:#fff;
+  transition:opacity .42s ease,transform .58s var(--ease),filter .42s ease;
 }
 .score strong{
   font-size:108px;
@@ -985,6 +986,115 @@ button{font:inherit;color:inherit}
   text-align:center;
   font-size:18px;
   color:rgba(255,255,255,.78);
+  transition:opacity .42s ease,transform .58s var(--ease),filter .42s ease;
+}
+.score-block{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:14px;
+}
+.score-block.is-complete .score,
+.score-block.is-complete .score-note{
+  display:none;
+}
+.score-results{
+  display:none;
+  justify-items:center;
+  gap:10px;
+  opacity:0;
+  transform:translateY(24px) scale(.94);
+  filter:blur(12px);
+  pointer-events:none;
+  transition:opacity .62s var(--ease),transform .72s var(--ease),filter .62s ease;
+}
+.score-block.is-complete .score-results{
+  display:grid;
+  opacity:1;
+  transform:translateY(0) scale(1);
+  filter:blur(0);
+  pointer-events:auto;
+}
+.score-results-ring{
+  position:relative;
+  width:90%;
+  aspect-ratio:1;
+  display:grid;
+  place-items:center;
+}
+.score-results-ring svg{
+  width:100%;
+  height:100%;
+  transform:rotate(-90deg);
+}
+.score-results-track,
+.score-results-progress{
+  fill:none;
+  stroke-width:6;
+}
+.score-results-track{
+  stroke:rgba(255,255,255,.12);
+}
+.score-results-progress{
+  stroke:#d0ffc4;
+  stroke-linecap:round;
+  stroke-dasharray:326.73;
+  stroke-dashoffset:326.73;
+  filter:drop-shadow(0 0 10px rgba(208,255,196,.28));
+  transition:stroke-dashoffset 900ms var(--ease);
+}
+.score-results-value{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:2px;
+  color:#fff;
+}
+.score-results-percent-row{
+  display:flex;
+  align-items:flex-end;
+  gap:2px;
+}
+.score-results-value strong{
+  font-size:60px;
+  line-height:.82;
+  font-weight:500;
+}
+.score-results-value span{
+  font-size:32px;
+  line-height:1;
+  color:#fff;
+  margin-bottom:10px;
+  font-weight:300;
+}
+.score-results-subtitle{
+  margin:6px 0 0;
+  font-size:12px;
+  line-height:1.2;
+  color:rgba(255,255,255,.72);
+  font-weight:500;
+}
+.score-results-stats{
+  display:none;
+}
+.score-results-stats div{
+  display:grid;
+  gap:6px;
+}
+.score-results-stat-value{
+  color:#fff;
+  font-size:24px;
+  line-height:1;
+  font-weight:500;
+}
+.score-results-stat-label{
+  color:rgba(255,255,255,.52);
+  font-size:12px;
+  font-weight:500;
+  letter-spacing:.14em;
 }
 .quote{
   margin:0;
@@ -1443,6 +1553,7 @@ button{font:inherit;color:inherit}
   <p>Preview how the golf bubble reflects the active putting state before opening the stack.</p>
   <div class="panel-actions">
     <button class="panel-button is-primary" id="bubbleStartButton" type="button">Bubble start</button>
+    <button class="panel-button" id="startCardButton" type="button">Start card</button>
     <button class="panel-button" id="bubbleEndButton" type="button">End</button>
   </div>
 </aside>
@@ -1475,7 +1586,7 @@ button{font:inherit;color:inherit}
       title:'Putting Session • 8 ft',
       subtitle:'Putting mode is on',
       content:[
-        {type:'score',value:'0',suffix:'/0',note:'makes'}
+        {type:'score',value:'0',suffix:'/0',note:'makes',result:{percent:67,made:2,missed:1,streak:2}}
       ],
       actions:['Pause','Finish']
     },
@@ -1522,6 +1633,7 @@ button{font:inherit;color:inherit}
   const golfPreviewTitle=document.getElementById('golfPreviewTitle');
   const golfPreviewImage=entryBubble.querySelector('.golf-home-active img');
   const bubbleStartButton=document.getElementById('bubbleStartButton');
+  const startCardButton=document.getElementById('startCardButton');
   const bubbleEndButton=document.getElementById('bubbleEndButton');
   const backButton=document.getElementById('backButton');
   const openTransition=document.getElementById('openTransition');
@@ -1560,6 +1672,8 @@ button{font:inherit;color:inherit}
   let golfPreviewChipTimer=0;
   let golfPreviewLabelKey='putting';
   let golfPreviewLabelTimer=0;
+  let scoreSequenceTimers=[];
+  let scoreSequenceRunning=false;
   let stackEnterTimer=null;
   let stackCloseTimer=null;
   let homeEnterTimer=null;
@@ -1665,7 +1779,25 @@ button{font:inherit;color:inherit}
       const wrapper=document.createElement('div');
       wrapper.className='content-block is-current';
       if(block.type==='score'){
-        wrapper.innerHTML='<div class="score"><strong>'+block.value+'</strong><span>'+block.suffix+'</span></div><div class="score-note">'+block.note+'</div>';
+        const result=block.result || {percent:0,made:0,missed:0,streak:0};
+        wrapper.classList.add('score-block');
+        wrapper.innerHTML=
+          '<div class="score" aria-label="0 out of 0 makes"><strong data-score-makes>'+block.value+'</strong><span data-score-target>'+block.suffix+'</span></div>'+
+          '<div class="score-note" data-score-note>'+block.note+'</div>'+
+          '<div class="score-results" data-score-results>'+
+            '<div class="score-results-ring" aria-hidden="true">'+
+              '<svg viewBox="0 0 132 132">'+
+                '<circle class="score-results-track" cx="66" cy="66" r="52"></circle>'+
+                '<circle class="score-results-progress" data-score-progress cx="66" cy="66" r="52"></circle>'+
+              '</svg>'+
+              '<div class="score-results-value"><div class="score-results-percent-row"><strong data-score-percent>'+result.percent+'</strong><span>%</span></div><p class="score-results-subtitle" data-score-subtitle>'+result.made+' of '+(result.made+result.missed)+' made</p></div>'+
+            '</div>'+
+            '<div class="score-results-stats">'+
+              '<div><span class="score-results-stat-value" data-score-made>'+result.made+'</span><span class="score-results-stat-label">MADE</span></div>'+
+              '<div><span class="score-results-stat-value" data-score-missed>'+result.missed+'</span><span class="score-results-stat-label">MISSED</span></div>'+
+              '<div><span class="score-results-stat-value" data-score-streak>'+result.streak+'</span><span class="score-results-stat-label">STREAK</span></div>'+
+            '</div>'+
+          '</div>';
       }else if(block.type==='quote'){
         wrapper.innerHTML='<p class="quote">'+block.value+'</p>';
       }else if(block.type==='proposal'){
@@ -1873,6 +2005,7 @@ button{font:inherit;color:inherit}
 
   function closeStackToHome(){
     if(!phone.classList.contains('is-stack') || phone.classList.contains('is-stack-closing')) return;
+    clearScoreSequence();
     const token=++entryTransitionToken;
     window.clearTimeout(stackEnterTimer);
     window.clearTimeout(stackCloseTimer);
@@ -1915,7 +2048,7 @@ button{font:inherit;color:inherit}
       return {w:20,h:20,x:0,y:-308,r:999,scale:1,opacity:1,blur:4,saturation:.84,bgOpacity:1,padTop:0,padX:0,padBottom:0,surfaceOpacity:1,surfaceBlur:0,thumbTop:24,thumbSize:64,thumbOpacity:0,chipTop:28,chipTranslateY:0,chipOpacity:0,labelOpacity:1};
     }
     if(slot==='is-active'){
-      return {w:348,h:activeH,x:0,y:-64,r:70,scale:1,opacity:1,blur:0,saturation:1,bgOpacity:1,padTop:110,padX:28,padBottom:26,surfaceOpacity:0,surfaceBlur:14,thumbTop:24,thumbSize:64,thumbOpacity:1,chipTop:28,chipTranslateY:0,chipOpacity:0,labelOpacity:0};
+      return {w:348,h:activeH,x:0,y:0,r:70,scale:1,opacity:1,blur:0,saturation:1,bgOpacity:1,padTop:110,padX:28,padBottom:26,surfaceOpacity:0,surfaceBlur:14,thumbTop:24,thumbSize:64,thumbOpacity:1,chipTop:28,chipTranslateY:0,chipOpacity:0,labelOpacity:0};
     }
     if(slot==='is-next'){
       return {w:160,h:160,x:0,y:248,r:999,scale:1,opacity:1,blur:0,saturation:1,bgOpacity:1,padTop:0,padX:0,padBottom:0,surfaceOpacity:0,surfaceBlur:0,thumbTop:0,thumbSize:160,thumbOpacity:1,chipTop:28,chipTranslateY:0,chipOpacity:1,labelOpacity:1};
@@ -2094,6 +2227,145 @@ button{font:inherit;color:inherit}
     secondary.style.opacity='0';
   }
 
+  function clearScoreSequence(){
+    scoreSequenceTimers.forEach(id=>window.clearTimeout(id));
+    scoreSequenceTimers=[];
+    scoreSequenceRunning=false;
+  }
+
+  function computeActiveCardHeight(card){
+    if(!card) return 420;
+    const meta=card.querySelector('.meta');
+    const content=card.querySelector('.content');
+    const actions=card.querySelector('.actions');
+    const padTop=110;
+    const padBottom=26;
+    const metaHeight=meta ? Math.ceil(meta.getBoundingClientRect().height) : 0;
+    const contentHeight=content ? Math.ceil(content.scrollHeight) : 0;
+    const actionsHeight=actions ? Math.ceil(actions.getBoundingClientRect().height) : 0;
+    return padTop + metaHeight + 20 + contentHeight + 20 + actionsHeight + padBottom;
+  }
+
+  function syncActiveCardHeight(index){
+    const card=cards[index];
+    if(!card) return;
+    const height=computeActiveCardHeight(card);
+    card.style.setProperty('--active-h',height+'px');
+    if(index===activeIndex){
+      card.style.setProperty('--h',height+'px');
+      const y=parseFloat(card.style.getPropertyValue('--y')) || -64;
+      const top=((phone.clientHeight-height)*.5)+y-60;
+      dayPill.style.setProperty('--pill-top',top.toFixed(2)+'px');
+    }
+  }
+
+  function syncDayPillPosition(){
+    const card=cards[activeIndex];
+    if(!card){
+      dayPill.style.setProperty('--pill-top','40px');
+      return;
+    }
+    const height=activeHeight(card);
+    const y=parseFloat(card.style.getPropertyValue('--y')) || -64;
+    const top=((phone.clientHeight-height)*.5)+y-60;
+    dayPill.style.setProperty('--pill-top',top.toFixed(2)+'px');
+  }
+
+  function getPuttingScoreBlock(){
+    const card=cards[0];
+    if(!card) return null;
+    return card.querySelector('.score-block');
+  }
+
+  function setPuttingActionLabels(primary,secondary){
+    const card=cards[0];
+    if(!card) return;
+    const labels=card.querySelectorAll('.action-label');
+    if(labels[0]) labels[0].textContent=primary;
+    if(labels[1]) labels[1].textContent=secondary;
+  }
+
+  function resetPuttingScoreBlock(){
+    const block=getPuttingScoreBlock();
+    if(!block) return;
+    block.classList.remove('is-complete');
+    const makes=block.querySelector('[data-score-makes]');
+    const target=block.querySelector('[data-score-target]');
+    const percent=block.querySelector('[data-score-percent]');
+    const subtitle=block.querySelector('[data-score-subtitle]');
+    const made=block.querySelector('[data-score-made]');
+    const missed=block.querySelector('[data-score-missed]');
+    const streak=block.querySelector('[data-score-streak]');
+    const ring=block.querySelector('[data-score-progress]');
+    if(makes) makes.textContent='0';
+    if(target) target.textContent='/0';
+    if(percent) percent.textContent='67';
+    if(subtitle) subtitle.textContent='2 of 3 made';
+    if(made) made.textContent='2';
+    if(missed) missed.textContent='1';
+    if(streak) streak.textContent='2';
+    if(ring) ring.style.strokeDashoffset='326.73';
+    setPuttingActionLabels('Pause','Finish');
+    if(activeIndex===0){
+      setPillStatus('ongoing');
+      setDayPillWidth('Putting');
+      dayPillText.textContent='Putting';
+    }
+  }
+
+  function updatePuttingScoreState(makesValue,targetValue){
+    const block=getPuttingScoreBlock();
+    if(!block) return;
+    const makes=block.querySelector('[data-score-makes]');
+    const target=block.querySelector('[data-score-target]');
+    const score=block.querySelector('.score');
+    const note=block.querySelector('[data-score-note]');
+    if(makes) makes.textContent=String(makesValue);
+    if(target) target.textContent='/'+String(targetValue);
+    if(score) score.setAttribute('aria-label',makesValue+' out of '+targetValue+' makes');
+    if(note) note.textContent='makes';
+  }
+
+  function revealPuttingResults(){
+    const block=getPuttingScoreBlock();
+    if(!block) return;
+    block.classList.add('is-complete');
+    setPuttingActionLabels('Share','Re-practice');
+    if(activeIndex===0){
+      setPillStatus('completed');
+      setDayPillWidth('Finished');
+      dayPillText.textContent='Finished';
+    }
+    syncActiveCardHeight(0);
+    const ring=block.querySelector('[data-score-progress]');
+    if(ring){
+      requestAnimationFrame(()=>{
+        ring.style.strokeDashoffset=(326.73*(1-.67)).toFixed(2);
+      });
+    }
+  }
+
+  function startPuttingCardSequence(){
+    if(!phone.classList.contains('is-stack')) return;
+    clearScoreSequence();
+    if(activeIndex!==0){
+      activeIndex=0;
+      render();
+    }
+    resetPuttingScoreBlock();
+    syncActiveCardHeight(0);
+    scoreSequenceRunning=true;
+    updatePuttingScoreState(0,0);
+    scoreSequenceTimers.push(window.setTimeout(()=>updatePuttingScoreState(1,1),2000));
+    scoreSequenceTimers.push(window.setTimeout(()=>updatePuttingScoreState(1,2),4000));
+    scoreSequenceTimers.push(window.setTimeout(()=>updatePuttingScoreState(2,3),6000));
+    scoreSequenceTimers.push(window.setTimeout(()=>revealPuttingResults(),8000));
+    scoreSequenceTimers.push(window.setTimeout(()=>{
+      navigate(1);
+      clearScoreSequence();
+    },10600));
+  }
+
   function setGolfPreviewScene(scene){
     golfPreviewImage.src=scene.image;
     golfPreviewTitle.innerHTML=scene.title;
@@ -2221,6 +2493,7 @@ button{font:inherit;color:inherit}
   function render(options={}){
     if(!options.keepBackground) commitStackBackground(activeIndex);
     updateDayPill(items[activeIndex]);
+    if(!scoreSequenceRunning) resetPuttingScoreBlock();
     const jumpCards=[];
     cards.forEach((card,index)=>{
       const forward=wrappedDistance(index);
@@ -2244,6 +2517,12 @@ button{font:inherit;color:inherit}
         jumpCards.forEach(card=>{
           card.classList.remove('no-transition');
         });
+      });
+    }
+    syncDayPillPosition();
+    if(!scoreSequenceRunning && activeIndex===0){
+      requestAnimationFrame(()=>{
+        syncActiveCardHeight(0);
       });
     }
   }
@@ -2288,6 +2567,7 @@ button{font:inherit;color:inherit}
   }
 
   function navigate(direction){
+    clearScoreSequence();
     settleScrub(direction);
   }
 
@@ -2422,6 +2702,10 @@ button{font:inherit;color:inherit}
     golfPreviewRaf=requestAnimationFrame(animateGolfPreview);
   });
 
+  startCardButton?.addEventListener('click',()=>{
+    startPuttingCardSequence();
+  });
+
   bubbleEndButton?.addEventListener('click',()=>{
     setGolfPreviewState(false);
   });
@@ -2497,7 +2781,10 @@ button{font:inherit;color:inherit}
   setPillStatus(items[activeIndex].status);
   setDayPillWidth(items[activeIndex].chip);
   commitStackBackground(activeIndex);
-  window.addEventListener('resize',measureActiveHeights);
+  window.addEventListener('resize',()=>{
+    measureActiveHeights();
+    syncDayPillPosition();
+  });
   render();
   ensureHomeBubbleLayout();
   requestAnimationFrame(renderHomeBubbles);
