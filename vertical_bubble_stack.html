@@ -669,7 +669,7 @@ button{font:inherit;color:inherit}
 }
 .day-pill{
   position:absolute;
-  top:var(--pill-top,40px);
+  top:-60px;
   left:50%;
   transform:translateX(-50%);
   width:var(--pill-w,118px);
@@ -843,6 +843,7 @@ button{font:inherit;color:inherit}
   pointer-events:auto;
   display:flex;
   flex-direction:column;
+  overflow:visible;
   background:transparent;
   box-shadow:var(--shadow);
   -webkit-backdrop-filter:blur(10px);
@@ -850,6 +851,9 @@ button{font:inherit;color:inherit}
   --pad-top:110px;
   --pad-x:28px;
   --pad-bottom:26px;
+}
+.bubble-card.is-scrubbing{
+  overflow:visible;
 }
 .bubble-card.is-measuring{
   pointer-events:none;
@@ -2253,22 +2257,14 @@ button{font:inherit;color:inherit}
     card.style.setProperty('--active-h',height+'px');
     if(index===activeIndex){
       card.style.setProperty('--h',height+'px');
-      const y=parseFloat(card.style.getPropertyValue('--y')) || -64;
-      const top=((phone.clientHeight-height)*.5)+y-60;
-      dayPill.style.setProperty('--pill-top',top.toFixed(2)+'px');
     }
   }
 
-  function syncDayPillPosition(){
-    const card=cards[activeIndex];
-    if(!card){
-      dayPill.style.setProperty('--pill-top','40px');
-      return;
+  function mountDayPill(card){
+    const host=card || stackScreen;
+    if(dayPill.parentNode!==host){
+      host.appendChild(dayPill);
     }
-    const height=activeHeight(card);
-    const y=parseFloat(card.style.getPropertyValue('--y')) || -64;
-    const top=((phone.clientHeight-height)*.5)+y-60;
-    dayPill.style.setProperty('--pill-top',top.toFixed(2)+'px');
   }
 
   function getPuttingScoreBlock(){
@@ -2520,7 +2516,7 @@ button{font:inherit;color:inherit}
         });
       });
     }
-    syncDayPillPosition();
+    mountDayPill(cards[activeIndex]);
     if(!scoreSequenceRunning && activeIndex===0){
       requestAnimationFrame(()=>{
         syncActiveCardHeight(0);
@@ -2533,12 +2529,19 @@ button{font:inherit;color:inherit}
     const previewIndex=modIndex(activeIndex+Math.round(dragProgress));
     syncStackBackground(activeIndex,dragProgress);
     updateDayPill(items[previewIndex]);
+    let pillAnchorCard=null;
+    let pillAnchorWidth=-1;
     cards.forEach((card,index)=>{
       const {slot,state}=scrubStateForIndex(index,dragProgress,card);
       card.dataset.slot=slot;
       card.className='bubble-card '+slot+' is-scrubbing';
       applyMotionState(card,state);
+      if(state.w>pillAnchorWidth){
+        pillAnchorWidth=state.w;
+        pillAnchorCard=card;
+      }
     });
+    if(pillAnchorCard) mountDayPill(pillAnchorCard);
   }
 
   function settleScrub(direction){
@@ -2784,7 +2787,6 @@ button{font:inherit;color:inherit}
   commitStackBackground(activeIndex);
   window.addEventListener('resize',()=>{
     measureActiveHeights();
-    syncDayPillPosition();
   });
   render();
   ensureHomeBubbleLayout();
