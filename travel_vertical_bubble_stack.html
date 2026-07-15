@@ -693,8 +693,7 @@ button{font:inherit;color:inherit}
   z-index:4;
   transition:width .46s var(--ease);
 }
-.prompt::after,
-.action::after{
+.prompt::after{
   content:"";
   position:absolute;
   inset:0;
@@ -705,6 +704,21 @@ button{font:inherit;color:inherit}
     inset 0 0 20px rgba(255,255,255,.14),
     inset 0 1px 8px rgba(255,255,255,.08),
     inset 0 -8px 14px rgba(255,255,255,.06);
+  pointer-events:none;
+}
+.action.is-detail-action::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  border-radius:inherit;
+  border:1px solid rgba(255,255,255,.18);
+  background:
+    radial-gradient(circle at 50% -6px,rgba(255,255,255,.36) 0,rgba(255,255,255,.24) 32%,rgba(255,255,255,0) 66%);
+  box-shadow:
+    inset 0 0 20px rgba(255,255,255,.2),
+    inset 0 1px 8px rgba(255,255,255,.12),
+    inset 0 -8px 14px rgba(255,255,255,.08);
   pointer-events:none;
 }
 .pill-content,
@@ -1263,6 +1277,10 @@ button{font:inherit;color:inherit}
 .action::after{
   background:none;
 }
+.action.is-detail-action{
+  background:rgba(255,255,255,.05);
+  box-shadow:0 22px 44px rgba(0,0,0,.16);
+}
 .compact-chip{
   position:absolute;
   left:50%;
@@ -1556,7 +1574,7 @@ button{font:inherit;color:inherit}
   transition:opacity .22s ease,transform .28s var(--ease);
 }
 .travel-now-text{
-  font-size:14px;
+  font-size:16px;
   line-height:1.45;
   color:#fff;
   transition:opacity .22s ease,transform .28s var(--ease);
@@ -1595,7 +1613,7 @@ button{font:inherit;color:inherit}
   border-radius:14px;
   background:rgba(0,0,0,.1);
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
-  font-size:14px;
+  font-size:16px;
   line-height:1.45;
   color:rgba(255,255,255,.78);
   transition:padding .42s var(--ease),background .32s ease,box-shadow .32s ease,opacity .22s ease,transform .28s var(--ease);
@@ -1611,7 +1629,7 @@ button{font:inherit;color:inherit}
   z-index:12;
   opacity:0;
   pointer-events:none;
-  overflow:hidden;
+  overflow:visible;
   color:#fff;
   transition:opacity .28s ease;
 }
@@ -1641,6 +1659,7 @@ button{font:inherit;color:inherit}
   position:relative;
   z-index:1;
   height:100%;
+  overflow:visible;
   padding:20px 22px 26px;
   display:flex;
   flex-direction:column;
@@ -1680,7 +1699,8 @@ button{font:inherit;color:inherit}
   position:relative;
   flex:1 1 auto;
   min-height:0;
-  overflow:auto;
+  overflow-y:auto;
+  overflow-x:visible;
   padding:0 0 110px;
   scrollbar-width:none;
 }
@@ -1704,7 +1724,7 @@ button{font:inherit;color:inherit}
 }
 .detail-sub{
   margin:8px 0 0;
-  font-size:13.5px;
+  font-size:15px;
   line-height:1.5;
   color:rgba(255,255,255,.64);
 }
@@ -1728,6 +1748,7 @@ button{font:inherit;color:inherit}
   z-index:1;
   display:grid;
   gap:2px;
+  overflow:visible;
 }
 .detail-ev{
   animation:detailFloatIn .46s cubic-bezier(.2,.8,.2,1) both;
@@ -1774,7 +1795,7 @@ button{font:inherit;color:inherit}
   animation:detailSpin .7s linear infinite;
 }
 .detail-step-text{
-  font-size:14.5px;
+  font-size:16px;
   line-height:1.45;
   color:rgba(255,255,255,.68);
 }
@@ -1786,7 +1807,6 @@ button{font:inherit;color:inherit}
   color:rgba(255,255,255,.46);
 }
 .detail-find-title,
-.detail-decision-tag,
 .detail-done-title{
   margin:0 0 8px;
   font-size:10.5px;
@@ -1797,16 +1817,22 @@ button{font:inherit;color:inherit}
 .detail-find-title{
   font-weight:600;
 }
-.detail-decision-tag,
 .detail-done-title{
   font-weight:600;
 }
-.detail-find-body,
-.detail-decision-copy,
-.detail-done-copy{
-  font-size:14px;
-  line-height:1.5;
+.detail-decision-tag{
+  margin:0 0 12px;
+  font-size:24px;
+  line-height:1.2;
+  font-weight:500;
+  letter-spacing:.01em;
   color:#fff;
+}
+.detail-find-body,
+.detail-decision-copy{
+  font-size:15px;
+  line-height:1.5;
+  color:rgba(255,255,255,.64);
 }
 .detail-find{
   margin:8px 0 12px 32px;
@@ -1848,30 +1874,50 @@ button{font:inherit;color:inherit}
 }
 .detail-decision{
   margin:14px 0 8px;
-  padding:18px;
-  border-radius:20px;
-  background:rgba(255,255,255,.08);
-  box-shadow:
-    inset 0 0 0 1px rgba(255,79,79,.34),
-    0 14px 30px rgba(0,0,0,.14);
+  padding:0;
+  background:none;
+  box-shadow:none;
 }
 .detail-option{
+  position:relative;
   width:100%;
   text-align:left;
   font-family:inherit;
   cursor:pointer;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.1);
+  overflow:hidden;
+  border-radius:16px;
+  border:0;
   background:rgba(255,255,255,.05);
+  box-shadow:0 22px 44px rgba(0,0,0,.16);
+  -webkit-backdrop-filter:blur(20px);
+  backdrop-filter:blur(20px);
+  isolation:isolate;
   padding:13px 14px;
 }
+.detail-option::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  border-radius:inherit;
+  border:1px solid rgba(255,255,255,.18);
+  box-shadow:
+    inset 0 0 20px rgba(255,255,255,.14),
+    inset 0 1px 8px rgba(255,255,255,.08),
+    inset 0 -8px 14px rgba(255,255,255,.06);
+  pointer-events:none;
+}
 .detail-option strong{
+  position:relative;
+  z-index:2;
   display:block;
   font-size:14.5px;
   font-weight:600;
   color:#fff;
 }
 .detail-option span{
+  position:relative;
+  z-index:2;
   display:block;
   margin-top:4px;
   font-size:12.5px;
@@ -1879,8 +1925,36 @@ button{font:inherit;color:inherit}
   color:rgba(255,255,255,.6);
 }
 .detail-option.is-picked{
-  background:rgba(255,255,255,.12);
-  border-color:rgba(255,255,255,.18);
+  background:rgba(255,255,255,.05);
+}
+.detail-option.is-picked::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:0;
+  width:80%;
+  aspect-ratio:1 / 1;
+  transform:translate(-50%,-70%);
+  border-radius:50%;
+  background:#fff;
+  filter:blur(60px);
+  z-index:0;
+  pointer-events:none;
+}
+.detail-option.is-picked::after{
+  padding:1px;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.62) 0%,rgba(255,255,255,.28) 34%,rgba(255,255,255,.12) 100%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite:exclude;
+  box-shadow:
+    inset 0 6px 10px 0 rgba(255,255,255,.5);
 }
 .detail-option.is-picked strong{
   color:#fff;
@@ -2181,7 +2255,7 @@ button{font:inherit;color:inherit}
   const items=[
     {
       key:'flight',
-      image:'final-bubbles/image 62850.png',
+      image:'assets/travel/image 62850.png',
       status:'needs-input',
       chip:'Needs input',
       bubbleLabel:'Cancelled flight\nneeds you',
@@ -2226,7 +2300,7 @@ button{font:inherit;color:inherit}
     },
     {
       key:'transfer',
-      image:'golf-bubbles/image 62841.png',
+      image:'assets/travel/1.jpg',
       status:'ongoing',
       chip:'Coordinating',
       bubbleLabel:'Airport transfer\nbeing moved',
@@ -2260,7 +2334,7 @@ button{font:inherit;color:inherit}
     },
     {
       key:'ryokan',
-      image:'golf-bubbles/image 62842.png',
+      image:'assets/travel/image 62842.png',
       status:'completed',
       chip:'Done',
       bubbleLabel:'Ryokan night\nprotected',
@@ -2491,7 +2565,7 @@ button{font:inherit;color:inherit}
     data.actions.forEach(actionDef=>{
       const button=document.createElement('button');
       button.type='button';
-      button.className='action';
+      button.className='action'+(actionDef.action==='detail' ? ' is-detail-action' : '');
       button.dataset.action=actionDef.action || 'noop';
       button.innerHTML='<span class="action-label">'+actionDef.label+'</span>';
       actions.appendChild(button);
@@ -2532,15 +2606,15 @@ button{font:inherit;color:inherit}
   });
 
   function detailToneColor(tone){
-    if(tone==='needs') return '#c2553a';
-    if(tone==='completed') return '#3f6b50';
-    return '#9a6c0a';
+    if(tone==='needs') return statusTokens['needs-input'].color;
+    if(tone==='completed') return statusTokens.completed.color;
+    return statusTokens.ongoing.color;
   }
 
   function detailProgressColor(tone){
-    if(tone==='needs') return '#c2553a';
-    if(tone==='completed') return '#6aa87e';
-    return '#f2b01e';
+    if(tone==='needs') return statusTokens['needs-input'].color;
+    if(tone==='completed') return statusTokens.completed.color;
+    return statusTokens.ongoing.color;
   }
 
   function detailStateTone(state){
@@ -2834,7 +2908,7 @@ button{font:inherit;color:inherit}
     }
     if(logEntry.type==='fork'){
       const event=logEntry.event;
-      return '<div class="detail-decision detail-ev" data-fork-index="'+index+'"><p class="detail-decision-tag">'+event.tag+'</p><div class="detail-decision-copy">'+event.q+'</div><div class="detail-done-copy" style="margin-top:8px;color:rgba(255,255,255,.64)">'+event.why+'</div><div class="detail-options">'+event.options.map((option,optionIndex)=>'<button class="detail-option'+(option.picked ? ' is-picked' : '')+'" data-option-index="'+optionIndex+'" type="button"><strong>'+option.label+'</strong><span>'+option.sub+'</span></button>').join('')+'</div></div>';
+      return '<div class="detail-decision detail-ev" data-fork-index="'+index+'"><p class="detail-decision-tag">'+event.tag+'</p><div class="detail-decision-copy">'+event.q+'</div><div class="detail-options">'+event.options.map((option,optionIndex)=>'<button class="detail-option'+(option.picked ? ' is-picked' : '')+'" data-option-index="'+optionIndex+'" type="button"><strong>'+option.label+'</strong><span>'+option.sub+'</span></button>').join('')+'</div></div>';
     }
     if(logEntry.type==='done'){
       const event=logEntry.event;
@@ -2847,10 +2921,11 @@ button{font:inherit;color:inherit}
     if(activeDetailRunner!==runner) return;
     const state=runner.status==='waiting' ? 'wait' : runner.status==='done' ? 'done' : 'run';
     const tone=detailStateTone(state);
-    detailEye.style.color=detailToneColor(tone);
+    const progressColor=detailProgressColor(tone);
+    detailEye.style.color=progressColor;
     const eyeLabel=runner.status==='paused' ? 'Paused' : state==='wait' ? 'Needs your decision' : state==='done' ? 'Done' : 'Working';
-    detailEye.innerHTML='<span class="pill-dot" style="display:inline-block;vertical-align:middle;margin-right:8px;background:'+detailProgressColor(tone)+'"></span>'+eyeLabel;
-    detailProgressBar.style.background=detailProgressColor(tone);
+    detailEye.innerHTML='<span class="pill-dot" style="display:inline-block;vertical-align:middle;margin-right:8px;background:'+progressColor+'"></span>'+eyeLabel;
+    detailProgressBar.style.background=progressColor;
     detailProgressBar.style.width=((runner.index/runner.timeline.length)*100).toFixed(1)+'%';
 
     const rendered=Number(detailFeed.dataset.rendered || '0');
