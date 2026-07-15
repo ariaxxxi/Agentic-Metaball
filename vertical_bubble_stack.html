@@ -21,6 +21,9 @@ html,body{
   background:#f0ede6;
   color:var(--ink);
   font-family:"Avenir Next","Helvetica Neue",ui-sans-serif,sans-serif;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
 }
 body{
   display:grid;
@@ -28,6 +31,18 @@ body{
   overflow:hidden;
 }
 button{font:inherit;color:inherit}
+button,
+img,
+svg,
+.phone,
+.stack-screen,
+.bubble-card,
+.prompt,
+.day-pill{
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+}
 .prototype-shell{
   display:flex;
   align-items:center;
@@ -754,6 +769,80 @@ button{font:inherit;color:inherit}
   position:absolute;
   inset:0;
 }
+.delete-affordance{
+  position:absolute;
+  left:auto;
+  right:-94px;
+  top:50%;
+  width:72px;
+  height:72px;
+  border-radius:20px;
+  display:grid;
+  place-items:center;
+  background:rgba(18,18,18,.24);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.12),
+    inset 0 0 18px rgba(255,255,255,.08),
+    0 18px 40px rgba(0,0,0,.18);
+  -webkit-backdrop-filter:blur(24px);
+  backdrop-filter:blur(24px);
+  opacity:0;
+  transform:translate3d(22px,-50%,0) scale(.9);
+  filter:none;
+  pointer-events:none;
+  z-index:7;
+  isolation:isolate;
+  transition:
+    opacity .14s linear,
+    transform .36s var(--ease),
+    background .2s ease,
+    box-shadow .2s ease;
+}
+.delete-affordance::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:rgba(18,18,18,.24);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.12),
+    inset 0 0 18px rgba(255,255,255,.08),
+    0 18px 40px rgba(0,0,0,.18);
+  opacity:calc(var(--delete-progress,0) * .88);
+  transition:opacity .14s linear,background .2s ease,box-shadow .2s ease;
+  z-index:0;
+}
+.delete-affordance svg{
+  width:36px;
+  height:36px;
+  stroke:#fff;
+  stroke-width:2.4;
+  fill:none;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  opacity:var(--delete-progress,0);
+  transform:scale(calc(.94 + var(--delete-progress,0) * .1));
+  transition:transform .14s linear,opacity .14s linear;
+  position:relative;
+  z-index:1;
+}
+.delete-affordance .trash-fill{
+  fill:#fff;
+  opacity:var(--delete-progress,0);
+  stroke:none;
+  transition:opacity .14s linear;
+}
+.phone.is-delete-mode .delete-affordance{
+  opacity:var(--delete-progress,0);
+  transform:translate3d(calc(22px - var(--delete-progress,0) * 22px),-50%,0) scale(calc(.9 + var(--delete-progress,0) * .1));
+}
+.phone.is-delete-mode .delete-affordance[data-armed="true"]::before{
+  background:rgba(135,24,24,.34);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,190,190,.22),
+    inset 0 0 20px rgba(255,120,120,.16),
+    0 20px 48px rgba(0,0,0,.24);
+}
 .bubble-card{
   position:absolute;
   left:50%;
@@ -762,10 +851,11 @@ button{font:inherit;color:inherit}
   height:var(--h,100px);
   padding:var(--pad-top,0) var(--pad-x,0) var(--pad-bottom,0);
   overflow:hidden;
-  transform:translate3d(calc(-50% + var(--x,0px)),calc(-50% + var(--y,0px)),0) scale(var(--scale,1));
+  transform:translate3d(calc(-50% + var(--x,0px) + var(--delete-shift,0px)),calc(-50% + var(--y,0px)),0) scale(var(--scale,1));
   border-radius:var(--r,50%);
   opacity:var(--opacity,1);
   filter:blur(var(--blur,0px)) saturate(var(--saturation,1));
+  rotate:0deg;
   transition:
     width 1200ms var(--ease),
     height 1200ms var(--ease),
@@ -871,6 +961,20 @@ button{font:inherit;color:inherit}
 .bubble-card.is-next2::after,
 .bubble-card.is-hidden::after{
   opacity:0;
+}
+.phone.is-delete-mode .bubble-card.is-prev,
+.phone.is-delete-mode .bubble-card.is-active,
+.phone.is-delete-mode .bubble-card.is-next,
+.phone.is-delete-mode .bubble-card.is-next2{
+  animation:deleteWobble .11s ease-in-out infinite alternate;
+}
+.phone.is-delete-mode .bubble-card.is-prev{animation-delay:-.04s}
+.phone.is-delete-mode .bubble-card.is-active{animation-delay:-.12s}
+.phone.is-delete-mode .bubble-card.is-next{animation-delay:-.2s}
+.phone.is-delete-mode .bubble-card.is-next2{animation-delay:-.28s}
+.phone.is-delete-mode .bubble-card.is-delete-dragging{
+  animation:none;
+  transition:none!important;
 }
 .bubble-card.is-active .bubble-surface,
 .bubble-card.is-measuring .bubble-surface{
@@ -1497,6 +1601,10 @@ button{font:inherit;color:inherit}
   from{opacity:1;transform:scale(1);filter:blur(0)}
   to{opacity:0;transform:scale(.86);filter:blur(22px)}
 }
+@keyframes deleteWobble{
+  from{rotate:-.24deg}
+  to{rotate:.24deg}
+}
 @keyframes homeBubbleReturn{
   from{opacity:0;scale:.84;filter:blur(16px)}
   62%{opacity:1}
@@ -1573,6 +1681,16 @@ button{font:inherit;color:inherit}
       </span>
     </div>
     <section class="stack" id="stack"></section>
+    <div class="delete-affordance" id="deleteAffordance" aria-hidden="true" data-armed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path class="trash-fill" d="M8.4 7.9h7.2l-.72 9.62a1.02 1.02 0 0 1-1.01.94h-3.78a1.02 1.02 0 0 1-1.01-.94L8.4 7.9Z"></path>
+        <path d="M4 7h16"></path>
+        <path d="M9 7V5.8c0-.65.52-1.18 1.17-1.18h3.66c.65 0 1.17.53 1.17 1.18V7"></path>
+        <path d="M7.7 7.9 8.45 18c.06.79.72 1.4 1.51 1.4h4.08c.79 0 1.45-.61 1.51-1.4l.75-10.1"></path>
+        <path d="M10 10.4v5.9"></path>
+        <path d="M14 10.4v5.9"></path>
+      </svg>
+    </div>
     <div class="prompt" aria-hidden="true">
       <span>Ask anything</span>
       <button type="button" aria-label="Voice input">
@@ -1675,6 +1793,7 @@ button{font:inherit;color:inherit}
   const dayPill=document.getElementById('dayPill');
   const dayPillContent=document.getElementById('dayPillContent');
   const dayPillText=document.getElementById('dayPillText');
+  const deleteAffordance=document.getElementById('deleteAffordance');
   const template=document.getElementById('bubbleTemplate');
   const homeBubbles=Array.from(homeScreen.querySelectorAll('[data-home-bubble]'));
   const cards=[];
@@ -1687,11 +1806,16 @@ button{font:inherit;color:inherit}
   let activeIndex=0;
   let currentPillKey=items[activeIndex].key;
   let pillTransitionToken=0;
+  let touchStartX=0;
   let touchStartY=0;
   let touchDeltaY=0;
   let dragProgress=0;
   let isDragging=false;
   let activePointerId=null;
+  let stackGestureMode='idle';
+  let longPressTimer=0;
+  let deleteMode=false;
+  let deleteDragX=0;
   let wheelLock=null;
   let wheelSettleTimer=null;
   let wheelProgress=0;
@@ -1729,6 +1853,10 @@ button{font:inherit;color:inherit}
   let homeActivePointerId=null;
   const swipeDistance=260;
   const settleThreshold=.28;
+  const longPressDelay=430;
+  const longPressMoveTolerance=12;
+  const deleteRevealDistance=132;
+  const deleteCommitDistance=148;
   const motionVars=[
     '--w',
     '--h',
@@ -2192,6 +2320,8 @@ button{font:inherit;color:inherit}
 
   function clearMotionState(card){
     motionVars.forEach(name=>card.style.removeProperty(name));
+    card.style.removeProperty('--delete-shift');
+    card.classList.remove('is-delete-dragging');
     const surface=card.querySelector('.bubble-surface');
     surface.style.removeProperty('opacity');
     surface.style.removeProperty('--surface-blur');
@@ -2205,6 +2335,127 @@ button{font:inherit;color:inherit}
     chip.style.removeProperty('transform');
     chip.style.removeProperty('opacity');
     card.querySelector('.bubble-label').style.removeProperty('opacity');
+  }
+
+  function clearLongPressTimer(){
+    window.clearTimeout(longPressTimer);
+    longPressTimer=0;
+  }
+
+  function activeCard(){
+    return cards[activeIndex] || null;
+  }
+
+  function currentCardState(card){
+    const cardRect=card.getBoundingClientRect();
+    const stackRect=stack.getBoundingClientRect();
+    const computed=getComputedStyle(card);
+    const slot=card.dataset.slot || '';
+    const fallback=stateForSlot(slot,card);
+    return Object.assign({},fallback,{
+      w:cardRect.width,
+      h:cardRect.height,
+      x:cardRect.left+cardRect.width*.5-stackRect.left-stackRect.width*.5,
+      y:cardRect.top+cardRect.height*.5-stackRect.top-stackRect.height*.5,
+      r:parseFloat(computed.borderTopLeftRadius) || fallback.r,
+      opacity:parseFloat(computed.opacity) || fallback.opacity,
+      blur:fallback.blur,
+      saturation:fallback.saturation
+    });
+  }
+
+  function updateDeleteProgress(offsetX){
+    const leftDrag=Math.max(0,-offsetX);
+    const progress=clamp(leftDrag/deleteRevealDistance,0,1);
+    stackScreen.style.setProperty('--delete-progress',progress.toFixed(3));
+    deleteAffordance.dataset.armed=leftDrag>=deleteCommitDistance ? 'true' : 'false';
+  }
+
+  function enterDeleteMode(){
+    if(deleteMode || !activeCard()) return;
+    deleteMode=true;
+    deleteDragX=0;
+    mountDeleteAffordance(activeCard());
+    phone.classList.add('is-delete-mode');
+    updateDeleteProgress(0);
+  }
+
+  function applyDeleteDrag(offsetX){
+    const card=activeCard();
+    if(!card) return;
+    deleteDragX=Math.min(0,offsetX);
+    card.classList.add('is-delete-dragging');
+    card.style.setProperty('--delete-shift',deleteDragX.toFixed(2)+'px');
+    updateDeleteProgress(deleteDragX);
+  }
+
+  function exitDeleteMode(resetCard=true){
+    const card=activeCard();
+    deleteMode=false;
+    deleteDragX=0;
+    phone.classList.remove('is-delete-mode');
+    deleteAffordance.dataset.armed='false';
+    stackScreen.style.setProperty('--delete-progress','0');
+    if(card){
+      card.classList.remove('is-delete-dragging');
+      if(resetCard) card.style.removeProperty('--delete-shift');
+    }
+  }
+
+  function resetDeleteDrag(){
+    const card=activeCard();
+    deleteDragX=0;
+    deleteAffordance.dataset.armed='false';
+    stackScreen.style.setProperty('--delete-progress','0');
+    if(card){
+      card.classList.remove('is-delete-dragging');
+      card.style.removeProperty('--delete-shift');
+    }
+  }
+
+  function deleteActiveCard(){
+    if(items.length<=1){
+      exitDeleteMode();
+      return;
+    }
+    const index=activeIndex;
+    const card=cards[index];
+    const survivorStarts=new Map();
+    cards.forEach(existingCard=>{
+      if(existingCard!==card) survivorStarts.set(existingCard,currentCardState(existingCard));
+    });
+    if(card){
+      card.classList.add('no-transition','is-delete-dragging');
+      card.style.setProperty('--delete-shift','-220px');
+      card.style.setProperty('--opacity','0');
+      card.style.setProperty('--scale','.92');
+    }
+    exitDeleteMode(false);
+    window.setTimeout(()=>{
+      items.splice(index,1);
+      if(card) card.remove();
+      cards.splice(index,1);
+      activeIndex=Math.min(index,items.length-1);
+      currentPillKey='';
+      render({keepMotionState:true,keepBackground:true});
+      commitStackBackground(activeIndex);
+      measureActiveHeights();
+      if(survivorStarts.size){
+        survivorStarts.forEach((startState,survivorCard)=>{
+          if(!cards.includes(survivorCard)) return;
+          survivorCard.classList.add('no-transition');
+          applyMotionState(survivorCard,startState);
+        });
+        void stack.offsetWidth;
+        requestAnimationFrame(()=>{
+          survivorStarts.forEach((_,survivorCard)=>{
+            if(!cards.includes(survivorCard)) return;
+            survivorCard.classList.remove('no-transition');
+            clearMotionState(survivorCard);
+          });
+        });
+      }
+    },180);
   }
 
   function wrappedDistance(index){
@@ -2296,6 +2547,13 @@ button{font:inherit;color:inherit}
     const host=card || stackScreen;
     if(dayPill.parentNode!==host){
       host.appendChild(dayPill);
+    }
+  }
+
+  function mountDeleteAffordance(card){
+    const host=card || stackScreen;
+    if(deleteAffordance.parentNode!==host){
+      host.appendChild(deleteAffordance);
     }
   }
 
@@ -2554,6 +2812,7 @@ button{font:inherit;color:inherit}
       });
     }
     mountDayPill(cards[activeIndex]);
+    mountDeleteAffordance(cards[activeIndex]);
     if(!scoreSequenceRunning && activeIndex===0){
       requestAnimationFrame(()=>{
         syncActiveCardHeight(0);
@@ -2727,6 +2986,10 @@ button{font:inherit;color:inherit}
 
   backButton.addEventListener('click',event=>{
     event.stopPropagation();
+    if(deleteMode){
+      exitDeleteMode();
+      return;
+    }
     closeStackToHome();
   });
 
@@ -2758,43 +3021,93 @@ button{font:inherit;color:inherit}
     event.preventDefault();
     activePointerId=event.pointerId;
     stack.setPointerCapture(event.pointerId);
+    touchStartX=event.clientX;
     touchStartY=event.clientY;
     touchDeltaY=0;
-    isDragging=true;
+    isDragging=false;
+    if(deleteMode){
+      stackGestureMode='delete';
+      clearLongPressTimer();
+      return;
+    }
+    stackGestureMode='pending';
+    clearLongPressTimer();
+    longPressTimer=window.setTimeout(()=>{
+      if(activePointerId!==event.pointerId || stackGestureMode!=='pending') return;
+      enterDeleteMode();
+      stackGestureMode='delete';
+    },longPressDelay);
   });
 
   stack.addEventListener('pointermove',event=>{
     if(!phone.classList.contains('is-stack')) return;
     if(phone.classList.contains('is-stack-closing')) return;
-    if(!isDragging || event.pointerId!==activePointerId) return;
+    if(event.pointerId!==activePointerId) return;
     event.preventDefault();
+    const deltaX=event.clientX-touchStartX;
     touchDeltaY=event.clientY-touchStartY;
+    if(stackGestureMode==='delete'){
+      applyDeleteDrag(deltaX);
+      return;
+    }
+    if(stackGestureMode==='pending'){
+      if(Math.hypot(deltaX,touchDeltaY)>longPressMoveTolerance){
+        clearLongPressTimer();
+      }
+      if(Math.abs(touchDeltaY)>Math.abs(deltaX) && Math.abs(touchDeltaY)>6){
+        stackGestureMode='scrub';
+        isDragging=true;
+      }else if(Math.abs(deltaX)>Math.abs(touchDeltaY) && Math.abs(deltaX)>longPressMoveTolerance){
+        stackGestureMode='idle';
+        return;
+      }else{
+        return;
+      }
+    }
+    if(stackGestureMode!=='scrub' || !isDragging) return;
     renderScrub(-touchDeltaY/swipeDistance);
   });
 
   stack.addEventListener('pointerup',event=>{
     if(!phone.classList.contains('is-stack')) return;
     if(phone.classList.contains('is-stack-closing')) return;
-    if(!isDragging || event.pointerId!==activePointerId) return;
+    if(event.pointerId!==activePointerId) return;
+    clearLongPressTimer();
     stack.releasePointerCapture(event.pointerId);
+    if(stackGestureMode==='delete'){
+      if(Math.abs(deleteDragX)>=deleteCommitDistance) deleteActiveCard();
+      else resetDeleteDrag();
+    }else if(stackGestureMode==='scrub' && isDragging){
+      onSwipeEnd();
+    }else if(deleteMode){
+      resetDeleteDrag();
+    }
     isDragging=false;
     activePointerId=null;
-    onSwipeEnd();
+    stackGestureMode='idle';
   });
 
   stack.addEventListener('pointercancel',event=>{
     if(!phone.classList.contains('is-stack')) return;
     if(phone.classList.contains('is-stack-closing')) return;
-    if(!isDragging || event.pointerId!==activePointerId) return;
+    if(event.pointerId!==activePointerId) return;
+    clearLongPressTimer();
     stack.releasePointerCapture(event.pointerId);
+    if(deleteMode) exitDeleteMode();
+    else if(stackGestureMode==='scrub' && isDragging) settleScrub(0);
     isDragging=false;
     activePointerId=null;
-    settleScrub(0);
+    stackGestureMode='idle';
+  });
+
+  stack.addEventListener('contextmenu',event=>{
+    event.preventDefault();
   });
 
   stack.addEventListener('wheel',event=>{
     if(!phone.classList.contains('is-stack')) return;
     if(phone.classList.contains('is-stack-closing')) return;
+    if(deleteMode) return;
     event.preventDefault();
     if(Math.abs(event.deltaY)<16) return;
     window.clearTimeout(wheelLock);
@@ -2813,6 +3126,11 @@ button{font:inherit;color:inherit}
   window.addEventListener('keydown',event=>{
     if(!phone.classList.contains('is-stack')) return;
     if(phone.classList.contains('is-stack-closing')) return;
+    if(deleteMode && event.key==='Escape'){
+      exitDeleteMode();
+      return;
+    }
+    if(deleteMode) return;
     if(event.key==='Escape') closeStackToHome();
     if(event.key==='ArrowUp') navigate(-1);
     if(event.key==='ArrowDown') navigate(1);
