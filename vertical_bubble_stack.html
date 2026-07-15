@@ -1018,6 +1018,10 @@ button{font:inherit;color:inherit}
   transform:translateY(0) scale(1);
   filter:blur(0);
   pointer-events:auto;
+  min-height:auto;
+  gap:20px;
+  padding:20px 0;
+  align-content:center;
 }
 .score-results-ring{
   position:relative;
@@ -1025,6 +1029,27 @@ button{font:inherit;color:inherit}
   aspect-ratio:1;
   display:grid;
   place-items:center;
+}
+.score-block.is-complete .score-results-ring,
+.score-block.is-complete .score-results-value,
+.score-block.is-complete .score-results-stats{
+  display:none;
+}
+.score-results-birdie{
+  display:none;
+  margin:0;
+  font-size:80px;
+  line-height:.92;
+  font-weight:500;
+  text-align:center;
+  color:transparent;
+  background:linear-gradient(180deg,rgba(255,255,255,.98) 0%,rgba(220,255,196,.96) 48%,rgba(167,232,255,.92) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  text-shadow:0 12px 32px rgba(0,0,0,.18);
+}
+.score-block.is-complete .score-results-birdie{
+  display:block;
 }
 .score-results-ring svg{
   width:100%;
@@ -1159,6 +1184,12 @@ button{font:inherit;color:inherit}
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:14px;
   transition:opacity .42s ease,transform .58s var(--ease);
+}
+.actions.is-single{
+  grid-template-columns:minmax(0,1fr);
+}
+.action.is-hidden{
+  display:none;
 }
 .action{
   position:relative;
@@ -1512,7 +1543,7 @@ button{font:inherit;color:inherit}
       <span class="home-pill is-base">Saturday</span>
       <span class="home-pill is-alt" id="golfPreviewPill"><i class="pill-status-dot" aria-hidden="true"></i><span class="pill-copy">Putting</span></span>
       <span class="home-title is-base">Golf practice<br>and social</span>
-      <span class="home-title is-alt" id="golfPreviewTitle">Putting Session<br>8 ft</span>
+      <span class="home-title is-alt" id="golfPreviewTitle">Putting Session<br>Hole 2</span>
     </button>
     <div class="home-bubble grooming-home" data-home-bubble aria-hidden="true">
       <img src="final-bubbles/image 62851.png" alt="">
@@ -1586,11 +1617,11 @@ button{font:inherit;color:inherit}
       image:'golf-bubbles/golfBG.png',
       status:'ongoing',
       chip:'Putting',
-      bubbleLabel:'Putting Session\n8 ft',
-      title:'Putting Session • 8 ft',
+      bubbleLabel:'Putting Session\nHole 2',
+      title:'Putting Session • Hole 2',
       subtitle:'Putting mode is on',
       content:[
-        {type:'score',value:'0',suffix:'/0',note:'makes',result:{percent:67,made:2,missed:1,streak:2}}
+        {type:'score',value:'0',suffix:'/3',note:'makes',result:{percent:67,made:2,missed:1,streak:2}}
       ],
       actions:['Pause','Finish']
     },
@@ -1599,7 +1630,7 @@ button{font:inherit;color:inherit}
       image:'golf-bubbles/image 62841.png',
       status:'ongoing',
       chip:'Composing',
-      bubbleLabel:'Drafting message\nto Sally',
+      bubbleLabel:'Drafting message\nto Amy',
       title:'To: Amy Chen',
       subtitle:'Re: Nori’s Groom',
       content:[
@@ -1742,19 +1773,19 @@ button{font:inherit;color:inherit}
   const previewScenes={
     putting:{
       image:'golf-bubbles/golfBG.png',
-      title:'Putting Session<br>8 ft',
+      title:'Putting Session<br>Hole 2',
       chip:'Putting',
       dot:'#ff9f2f'
     },
     compose:{
       image:'golf-bubbles/image 62841.png',
-      title:'Drafting your<br>message to Sally',
+      title:'Drafting message<br>to Amy',
       chip:'Composing',
       dot:'#ff9f2f'
     },
     ready:{
       image:'golf-bubbles/image 62841.png',
-      title:'Review your<br>message to Sally',
+      title:'Review your<br>message to Amy',
       chip:'Completed',
       dot:'#40d978'
     }
@@ -1796,6 +1827,7 @@ button{font:inherit;color:inherit}
               '</svg>'+
               '<div class="score-results-value"><div class="score-results-percent-row"><strong data-score-percent>'+result.percent+'</strong><span>%</span></div><p class="score-results-subtitle" data-score-subtitle>'+result.made+' of '+(result.made+result.missed)+' made</p></div>'+
             '</div>'+
+            '<p class="score-results-birdie" data-score-birdie>Birdie!</p>'+
             '<div class="score-results-stats">'+
               '<div><span class="score-results-stat-value" data-score-made>'+result.made+'</span><span class="score-results-stat-label">MADE</span></div>'+
               '<div><span class="score-results-stat-value" data-score-missed>'+result.missed+'</span><span class="score-results-stat-label">MISSED</span></div>'+
@@ -2281,6 +2313,15 @@ button{font:inherit;color:inherit}
     if(labels[1]) labels[1].textContent=secondary;
   }
 
+  function setPuttingActionMode(single){
+    const card=cards[0];
+    if(!card) return;
+    const actions=card.querySelector('.actions');
+    const buttons=card.querySelectorAll('.action');
+    if(actions) actions.classList.toggle('is-single',single);
+    if(buttons[1]) buttons[1].classList.toggle('is-hidden',single);
+  }
+
   function resetPuttingScoreBlock(){
     const block=getPuttingScoreBlock();
     if(!block) return;
@@ -2294,7 +2335,7 @@ button{font:inherit;color:inherit}
     const streak=block.querySelector('[data-score-streak]');
     const ring=block.querySelector('[data-score-progress]');
     if(makes) makes.textContent='0';
-    if(target) target.textContent='/0';
+    if(target) target.textContent='/3';
     if(percent) percent.textContent='67';
     if(subtitle) subtitle.textContent='2 of 3 made';
     if(made) made.textContent='2';
@@ -2302,6 +2343,7 @@ button{font:inherit;color:inherit}
     if(streak) streak.textContent='2';
     if(ring) ring.style.strokeDashoffset='326.73';
     setPuttingActionLabels('Pause','Finish');
+    setPuttingActionMode(false);
     if(activeIndex===0){
       setPillStatus('ongoing');
       setDayPillWidth('Putting');
@@ -2326,19 +2368,14 @@ button{font:inherit;color:inherit}
     const block=getPuttingScoreBlock();
     if(!block) return;
     block.classList.add('is-complete');
-    setPuttingActionLabels('Share','Re-practice');
+    setPuttingActionLabels('Share','');
+    setPuttingActionMode(true);
     if(activeIndex===0){
       setPillStatus('completed');
       setDayPillWidth('Finished');
       dayPillText.textContent='Finished';
     }
     syncActiveCardHeight(0);
-    const ring=block.querySelector('[data-score-progress]');
-    if(ring){
-      requestAnimationFrame(()=>{
-        ring.style.strokeDashoffset=(326.73*(1-.67)).toFixed(2);
-      });
-    }
   }
 
   function startPuttingCardSequence(){
@@ -2351,9 +2388,9 @@ button{font:inherit;color:inherit}
     resetPuttingScoreBlock();
     syncActiveCardHeight(0);
     scoreSequenceRunning=true;
-    updatePuttingScoreState(0,0);
-    scoreSequenceTimers.push(window.setTimeout(()=>updatePuttingScoreState(1,1),2000));
-    scoreSequenceTimers.push(window.setTimeout(()=>updatePuttingScoreState(1,2),4000));
+    updatePuttingScoreState(0,3);
+    scoreSequenceTimers.push(window.setTimeout(()=>updatePuttingScoreState(1,3),2000));
+    scoreSequenceTimers.push(window.setTimeout(()=>updatePuttingScoreState(2,3),4000));
     scoreSequenceTimers.push(window.setTimeout(()=>updatePuttingScoreState(2,3),6000));
     scoreSequenceTimers.push(window.setTimeout(()=>revealPuttingResults(),8000));
     scoreSequenceTimers.push(window.setTimeout(()=>{
@@ -2794,6 +2831,11 @@ button{font:inherit;color:inherit}
   setGolfPreviewScene(previewScenes.putting);
   setGolfPreviewChip(previewScenes.putting);
   setGolfPreviewState(false);
+  entryBubble.addEventListener('click',event=>{
+    event.preventDefault();
+    event.stopPropagation();
+    openStackFromHome();
+  });
   entryBubble.addEventListener('keydown',event=>{
     if(event.key==='Enter' || event.key===' '){
       event.preventDefault();

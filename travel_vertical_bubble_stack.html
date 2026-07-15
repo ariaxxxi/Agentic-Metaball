@@ -2404,6 +2404,7 @@ button{font:inherit;color:inherit}
     cards.push(card);
     cardRefsByKey.set(item.key,{
       card,
+      chipText:card.querySelector('.chip-text'),
       nowMark:card.querySelector('[data-travel-now-mark]'),
       nowLabel:card.querySelector('[data-travel-now-label]'),
       nowText:card.querySelector('[data-travel-now-text]'),
@@ -2466,6 +2467,11 @@ button{font:inherit;color:inherit}
   function runnerDayPillText(runner){
     const state=runnerStateName(runner);
     return state==='wait' ? 'Needs your decision' : state==='done' ? 'Done' : state==='paused' ? 'Paused' : 'Working';
+  }
+
+  function runnerBubbleChipText(runner){
+    const state=runnerStateName(runner);
+    return state==='wait' ? 'Needs input' : state==='done' ? 'Done' : state==='paused' ? 'Paused' : 'Working';
   }
 
   function runnerLatestSummary(runner,fallbackTitle,fallbackBody){
@@ -2554,6 +2560,7 @@ button{font:inherit;color:inherit}
     const latest=runnerLatestSummary(runner,fallback.latestTitle,fallback.latestBody);
     refs.card.style.setProperty('--status-color',status.color);
     refs.card.style.setProperty('--status-glow',status.glow);
+    if(refs.chipText) animateTextSwap(refs.chipText,runnerBubbleChipText(runner));
     if(refs.nowMark) animateMarkSwap(refs.nowMark,state==='done' ? '✓' : state==='wait' ? '!' : '·');
     if(refs.nowLabel) animateTextSwap(refs.nowLabel,state==='wait' ? 'Waiting on you' : state==='done' ? 'Result' : state==='paused' ? 'Paused' : 'Now');
     if(refs.nowText) animateTextSwap(refs.nowText,runner.status==='idle' ? fallback.nowText : runner.current);
@@ -2825,13 +2832,28 @@ button{font:inherit;color:inherit}
     detailView.setAttribute('aria-hidden','true');
   }
 
+  function measureCardHeight(card){
+    if(!card) return 420;
+    const clone=card.cloneNode(true);
+    clone.className='bubble-card is-measuring';
+    clone.removeAttribute('data-slot');
+    clone.style.setProperty('--h','auto');
+    clone.style.setProperty('--w','348px');
+    clone.style.setProperty('--x','0px');
+    clone.style.setProperty('--y','0px');
+    clone.style.setProperty('--scale','1');
+    clone.style.setProperty('--opacity','0');
+    clone.style.setProperty('--blur','0px');
+    clone.style.setProperty('--r','70px');
+    stackScreen.appendChild(clone);
+    const height=Math.ceil(clone.getBoundingClientRect().height);
+    clone.remove();
+    return height;
+  }
+
   function measureActiveHeights(){
     cards.forEach(card=>{
-      const currentClass=card.className;
-      card.className='bubble-card is-measuring';
-      const height=Math.ceil(card.getBoundingClientRect().height);
-      card.style.setProperty('--active-h',height+'px');
-      card.className=currentClass;
+      card.style.setProperty('--active-h',measureCardHeight(card)+'px');
     });
   }
 
@@ -3236,16 +3258,7 @@ button{font:inherit;color:inherit}
   }
 
   function computeActiveCardHeight(card){
-    if(!card) return 420;
-    const meta=card.querySelector('.meta');
-    const content=card.querySelector('.content');
-    const actions=card.querySelector('.actions');
-    const padTop=88;
-    const padBottom=26;
-    const metaHeight=meta ? Math.ceil(meta.getBoundingClientRect().height) : 0;
-    const contentHeight=content ? Math.ceil(content.scrollHeight) : 0;
-    const actionsHeight=actions ? Math.ceil(actions.getBoundingClientRect().height) : 0;
-    return padTop + metaHeight + 20 + contentHeight + 20 + actionsHeight + padBottom;
+    return measureCardHeight(card);
   }
 
   function syncActiveCardHeight(index){
@@ -3256,6 +3269,18 @@ button{font:inherit;color:inherit}
     if(index===activeIndex){
       card.style.setProperty('--h',height+'px');
     }
+  }
+
+  function syncActiveCardHeightDeferred(index){
+    requestAnimationFrame(()=>{
+      syncActiveCardHeight(index);
+      requestAnimationFrame(()=>{
+        syncActiveCardHeight(index);
+      });
+    });
+    window.setTimeout(()=>{
+      syncActiveCardHeight(index);
+    },220);
   }
 
   function mountDayPill(card){
@@ -3569,6 +3594,7 @@ button{font:inherit;color:inherit}
       cards.forEach(card=>card.classList.remove('no-transition'));
       cards.forEach(clearMotionState);
     });
+    syncActiveCardHeightDeferred(activeIndex);
     dragProgress=0;
     wheelProgress=0;
   }
