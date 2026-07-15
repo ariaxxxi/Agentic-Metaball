@@ -2153,19 +2153,19 @@ button{font:inherit;color:inherit}
   <div class="grain" aria-hidden="true"></div>
   <section class="home-screen" id="homeScreen" aria-label="Travel bubble overview">
     <div class="home-bubble assistant-home" data-home-bubble aria-hidden="true">
-      <img src="golf-bubbles/image 62840.png" alt="">
+      <img src="assets/golf-bubbles/image 62840.png" alt="">
     </div>
     <div class="home-bubble cooking-home" data-home-bubble aria-hidden="true">
-      <img src="final-bubbles/image 62849.png" alt="">
+      <img src="assets/final-bubbles/image 62849.png" alt="">
       <span class="home-pill">Flight</span>
       <span class="home-label">Rebook<br>options</span>
     </div>
     <button class="home-bubble golf-home" id="entryBubble" data-home-bubble type="button" aria-label="Open Kyoto travel recovery stack">
       <span class="golf-home-media golf-home-base" aria-hidden="true">
-        <img src="final-bubbles/image 62850.png" alt="">
+        <img src="assets/travel/image 62850.png" alt="">
       </span>
       <span class="golf-home-media golf-home-active" aria-hidden="true">
-        <img src="golf-bubbles/golfBG.png" alt="">
+        <img src="assets/golf-bubbles/golfBG.png" alt="">
       </span>
       <span class="golf-ring" aria-hidden="true"></span>
       <span class="home-pill is-base">Kyoto</span>
@@ -2174,15 +2174,15 @@ button{font:inherit;color:inherit}
       <span class="home-title is-alt" id="golfPreviewTitle">Rebooking your<br>Osaka flight</span>
     </button>
     <div class="home-bubble grooming-home" data-home-bubble aria-hidden="true">
-      <img src="final-bubbles/image 62851.png" alt="">
+      <img src="assets/final-bubbles/image 62851.png" alt="">
       <span class="home-pill">Stay</span>
       <span class="home-label">Ryokan<br>night</span>
     </div>
     <div class="home-bubble weather-home" data-home-bubble aria-hidden="true">
-      <img src="golf-bubbles/image 62843.png" alt="">
+      <img src="assets/golf-bubbles/image 62843.png" alt="">
     </div>
     <button class="spark-home" type="button" aria-label="Assistant">
-      <img src="golf-bubbles/ai-stars.png" alt="" aria-hidden="true">
+      <img src="assets/golf-bubbles/ai-stars.png" alt="" aria-hidden="true">
     </button>
   </section>
   <div class="open-transition" id="openTransition" aria-hidden="true"></div>
@@ -2517,19 +2517,19 @@ button{font:inherit;color:inherit}
   };
   const previewScenes={
     putting:{
-      image:'golf-bubbles/golfBG.png',
+      image:'assets/golf-bubbles/golfBG.png',
       title:'Putting Session<br>8 ft',
       chip:'Putting',
       dot:'#ff9f2f'
     },
     compose:{
-      image:'golf-bubbles/image 62841.png',
+      image:'assets/golf-bubbles/image 62841.png',
       title:'Drafting your<br>message to Sally',
       chip:'Composing',
       dot:'#ff9f2f'
     },
     ready:{
-      image:'golf-bubbles/image 62841.png',
+      image:'assets/golf-bubbles/image 62841.png',
       title:'Review your<br>message to Sally',
       chip:'Completed',
       dot:'#40d978'
@@ -3181,7 +3181,7 @@ button{font:inherit;color:inherit}
     phone.style.setProperty('--open-final-left',(phoneRect.width*.5-cover).toFixed(2)+'px');
     phone.style.setProperty('--open-final-top',(phoneRect.height*.5-cover).toFixed(2)+'px');
     phone.style.setProperty('--open-final-size',(cover*2).toFixed(2)+'px');
-    openTransition.style.setProperty('--open-image','url("'+(golfPreviewActive ? golfPreviewImage.getAttribute('src') : 'final-bubbles/image 62850.png')+'")');
+    openTransition.style.setProperty('--open-image','url("'+(golfPreviewActive ? golfPreviewImage.getAttribute('src') : 'assets/travel/image 62850.png')+'")');
 
     window.clearTimeout(stackEnterTimer);
     window.clearTimeout(stackCloseTimer);
