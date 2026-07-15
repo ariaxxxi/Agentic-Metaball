@@ -1822,13 +1822,28 @@ button{font:inherit;color:inherit}
 }
 .detail-decision-tag{
   margin:0 0 12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
   font-size:24px;
   line-height:1.2;
   font-weight:500;
   letter-spacing:.01em;
   color:#fff;
 }
-.detail-find-body,
+.detail-decision-tag::before{
+  content:"";
+  width:10px;
+  height:10px;
+  flex:0 0 auto;
+  border-radius:50%;
+  background:#ff4f4f;
+}
+.detail-find-body{
+  font-size:15px;
+  line-height:1.5;
+  color:#fff;
+}
 .detail-decision-copy{
   font-size:15px;
   line-height:1.5;
@@ -1880,6 +1895,9 @@ button{font:inherit;color:inherit}
 }
 .detail-option{
   position:relative;
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
   width:100%;
   text-align:left;
   font-family:inherit;
@@ -1888,11 +1906,28 @@ button{font:inherit;color:inherit}
   border-radius:16px;
   border:0;
   background:rgba(255,255,255,.05);
-  box-shadow:0 22px 44px rgba(0,0,0,.16);
   -webkit-backdrop-filter:blur(20px);
   backdrop-filter:blur(20px);
   isolation:isolate;
   padding:13px 14px;
+}
+.detail-option-icon{
+  position:relative;
+  z-index:2;
+  width:40px;
+  height:40px;
+  flex:0 0 auto;
+  display:grid;
+  place-items:center;
+  color:#fff;
+  font-size:16px;
+  line-height:1;
+}
+.detail-option-copy{
+  position:relative;
+  z-index:2;
+  min-width:0;
+  flex:1 1 auto;
 }
 .detail-option::after{
   content:"";
@@ -1901,23 +1936,15 @@ button{font:inherit;color:inherit}
   z-index:1;
   border-radius:inherit;
   border:1px solid rgba(255,255,255,.18);
-  box-shadow:
-    inset 0 0 20px rgba(255,255,255,.14),
-    inset 0 1px 8px rgba(255,255,255,.08),
-    inset 0 -8px 14px rgba(255,255,255,.06);
   pointer-events:none;
 }
 .detail-option strong{
-  position:relative;
-  z-index:2;
   display:block;
   font-size:14.5px;
   font-weight:600;
   color:#fff;
 }
-.detail-option span{
-  position:relative;
-  z-index:2;
+.detail-option-copy > span{
   display:block;
   margin-top:4px;
   font-size:12.5px;
@@ -1928,19 +1955,13 @@ button{font:inherit;color:inherit}
   background:rgba(255,255,255,.05);
 }
 .detail-option.is-picked::after{
-  padding:1px;
+  border:1px solid rgba(255,255,255,.18);
   background:
-    linear-gradient(180deg,rgba(255,255,255,.62) 0%,rgba(255,255,255,.28) 34%,rgba(255,255,255,.12) 100%);
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor;
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask-composite:exclude;
+    radial-gradient(circle at 50% -6px,rgba(255,255,255,.36) 0,rgba(255,255,255,.24) 32%,rgba(255,255,255,0) 66%);
   box-shadow:
-    inset 0 6px 10px 0 rgba(255,255,255,.5);
+    inset 0 0 20px rgba(255,255,255,.2),
+    inset 0 1px 8px rgba(255,255,255,.12),
+    inset 0 -8px 14px rgba(255,255,255,.08);
 }
 .detail-option.is-picked strong{
   color:#fff;
@@ -2894,7 +2915,7 @@ button{font:inherit;color:inherit}
     }
     if(logEntry.type==='fork'){
       const event=logEntry.event;
-      return '<div class="detail-decision detail-ev" data-fork-index="'+index+'"><p class="detail-decision-tag">'+event.tag+'</p><div class="detail-decision-copy">'+event.q+'</div><div class="detail-options">'+event.options.map((option,optionIndex)=>'<button class="detail-option'+(option.picked ? ' is-picked' : '')+'" data-option-index="'+optionIndex+'" type="button"><strong>'+option.label+'</strong><span>'+option.sub+'</span></button>').join('')+'</div></div>';
+      return '<div class="detail-decision detail-ev" data-fork-index="'+index+'"><p class="detail-decision-tag">'+event.tag+'</p><div class="detail-decision-copy">'+event.q+'</div><div class="detail-options">'+event.options.map((option,optionIndex)=>'<button class="detail-option'+(option.picked ? ' is-picked' : '')+'" data-option-index="'+optionIndex+'" type="button"><span class="detail-option-icon">'+(['✈️','🔁','🌙'][optionIndex] || '•')+'</span><span class="detail-option-copy"><strong>'+option.label+'</strong><span>'+option.sub+'</span></span></button>').join('')+'</div></div>';
     }
     if(logEntry.type==='done'){
       const event=logEntry.event;
