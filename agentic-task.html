@@ -47,8 +47,17 @@ button{font:inherit;color:inherit}
 .backdrop{
   position:absolute;
   inset:-18%;
-  background:linear-gradient(180deg,#eeeeee 0%,#c1c1c1 100%);
-  filter:blur(32px);
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.04) 28%,rgba(30,24,14,.1) 100%),
+    var(--home-bg-image,none) center/cover no-repeat;
+  filter:blur(12px) saturate(1.04);
+  transform:scale(1.16);
+}
+.backdrop::after{
+  content:"";
+  position:absolute;
+  inset:-4%;
+  background:linear-gradient(180deg,rgba(49,49,49,.06),rgba(24,24,24,.1) 100%);
 }
 .grain{
   position:absolute;
@@ -93,7 +102,7 @@ button{font:inherit;color:inherit}
   background:
     linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.04) 28%,rgba(30,24,14,.1) 100%),
     var(--stack-bg-image,none) center/cover no-repeat;
-  filter:blur(20px) saturate(1.04);
+  filter:blur(12px) saturate(1.04);
   transform:scale(1.16);
   opacity:0;
   transition:
@@ -105,7 +114,7 @@ button{font:inherit;color:inherit}
   content:"";
   position:absolute;
   inset:-4%;
-  background:linear-gradient(180deg,rgba(49,49,49,.18),rgba(24,24,24,.44) 100%);
+  background:linear-gradient(180deg,rgba(49,49,49,.06),rgba(24,24,24,.1) 100%);
 }
 .back-button,
 .day-pill,
@@ -216,12 +225,10 @@ button{font:inherit;color:inherit}
   border:0;
   border-radius:50%;
   color:#fff;
-  background:rgba(0,0,0,.15);
-  box-shadow:
-    inset 0 0 10px rgba(255,255,255,.22),
-    0 18px 36px rgba(0,0,0,.1);
-  -webkit-backdrop-filter:blur(20px);
-  backdrop-filter:blur(20px);
+  background:rgba(0,0,0,.2);
+  box-shadow:none;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
   display:grid;
   place-items:center;
   z-index:6;
@@ -382,17 +389,17 @@ button{font:inherit;color:inherit}
 .golf-home-active{
   opacity:0;
   transform:scale(1.08);
-  filter:blur(10px);
+  filter:blur(12px);
 }
 .golf-home.is-preview-active .golf-home-base{
   opacity:0;
   transform:scale(1.08);
-  filter:blur(8px);
+  filter:blur(12px);
 }
 .golf-home.is-preview-active .golf-home-active{
   opacity:1;
   transform:scale(1);
-  filter:blur(0);
+  filter:blur(12px);
 }
 .golf-home .home-pill{
   position:absolute;
@@ -563,16 +570,14 @@ button{font:inherit;color:inherit}
   left:50%;
   bottom:28px;
   transform:translateX(-50%);
-  width:68px;
-  height:68px;
+  width:132px;
+  height:56px;
   border:0;
-  border-radius:50%;
-  background:#000;
-  box-shadow:
-    inset 0 0 18px rgba(255,255,255,.3),
-    0 18px 34px rgba(0,0,0,.1);
-  -webkit-backdrop-filter:blur(18px);
-  backdrop-filter:blur(18px);
+  border-radius:999px;
+  background:rgba(0,0,0,.2);
+  box-shadow:none;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
   display:grid;
   place-items:center;
   z-index:6;
@@ -616,18 +621,16 @@ button{font:inherit;color:inherit}
   height:48px;
   border:0;
   border-radius:16px;
-  background:rgba(255,255,255,.08);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);
+  background:rgba(0,0,0,.2);
+  box-shadow:none;
   color:#fff;
   font-size:15px;
   font-weight:600;
 }
 .panel-button.is-primary{
-  background:rgba(208,255,196,.18);
-  box-shadow:
-    inset 0 0 0 1px rgba(208,255,196,.28),
-    inset 0 0 24px rgba(208,255,196,.12);
-  color:#f3fff0;
+  background:rgba(0,0,0,.2);
+  box-shadow:none;
+  color:#fff;
 }
 @keyframes openBubbleExpand{
   from{
@@ -670,6 +673,7 @@ button{font:inherit;color:inherit}
   }
 }
 .day-pill{
+  display:none;
   position:absolute;
   top:-60px;
   left:50%;
@@ -683,13 +687,11 @@ button{font:inherit;color:inherit}
   font-weight:500;
   letter-spacing:.02em;
   overflow:hidden;
-  background:rgba(255,255,255,.05);
-  box-shadow:
-    inset 0 0 10px rgba(255,255,255,.25),
-    0 22px 44px rgba(0,0,0,.12);
-  -webkit-backdrop-filter:blur(20px);
-  backdrop-filter:blur(20px);
-  isolation:isolate;
+  background:rgba(0,0,0,.2);
+  box-shadow:none;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+  isolation:auto;
   z-index:4;
   transition:width .46s var(--ease);
 }
@@ -707,19 +709,7 @@ button{font:inherit;color:inherit}
   pointer-events:none;
 }
 .action.is-detail-action::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  z-index:1;
-  border-radius:inherit;
-  border:1px solid rgba(255,255,255,.18);
-  background:
-    radial-gradient(circle at 50% -6px,rgba(255,255,255,.36) 0,rgba(255,255,255,.24) 32%,rgba(255,255,255,0) 66%);
-  box-shadow:
-    inset 0 0 20px rgba(255,255,255,.2),
-    inset 0 1px 8px rgba(255,255,255,.12),
-    inset 0 -8px 14px rgba(255,255,255,.08);
-  pointer-events:none;
+  content:none;
 }
 .pill-content,
 .prompt span,
@@ -884,28 +874,13 @@ button{font:inherit;color:inherit}
   position:absolute;
   inset:0;
   border-radius:inherit;
-  background:rgba(255,255,255,.003);
-  box-shadow:inset 0 0 20px rgba(255,255,255,.25);
+  background:rgba(255,255,255,.1);
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
   z-index:0;
 }
 .bubble-card::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius:inherit;
-  background:linear-gradient(135deg,rgba(255,255,255,.22),rgba(255,255,255,0));
-  opacity:0;
-  padding:1px;
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor;
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask-composite:exclude;
-  z-index:1;
-  pointer-events:none;
+  content:none;
 }
 .bubble-surface{
   position:absolute;
@@ -924,10 +899,12 @@ button{font:inherit;color:inherit}
   flex-direction:column;
   overflow:visible;
   background:transparent;
+  filter:none;
   box-shadow:var(--shadow);
-  -webkit-backdrop-filter:blur(10px);
-  backdrop-filter:blur(10px);
-  --pad-top:88px;
+  will-change:transform,width,height,padding,border-radius;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+  --pad-top:48px;
   --pad-x:28px;
   --pad-bottom:26px;
 }
@@ -939,6 +916,8 @@ button{font:inherit;color:inherit}
 }
 .bubble-card.is-active::before{
   opacity:1;
+  -webkit-backdrop-filter:blur(10px);
+  backdrop-filter:blur(10px);
 }
 .bubble-card.is-active::after,
 .bubble-card.is-measuring::after{
@@ -975,10 +954,8 @@ button{font:inherit;color:inherit}
 }
 .bubble-card.is-active .meta,
 .bubble-card.is-active .content,
-.bubble-card.is-active .actions,
 .bubble-card.is-measuring .meta,
-.bubble-card.is-measuring .content,
-.bubble-card.is-measuring .actions{
+.bubble-card.is-measuring .content{
   position:relative;
   left:auto;
   right:auto;
@@ -997,7 +974,7 @@ button{font:inherit;color:inherit}
 }
 .bubble-card.is-active .actions,
 .bubble-card.is-measuring .actions{
-  margin-top:20px;
+  margin-top:0;
 }
 .bubble-card:not(.is-active) .bubble-surface{
   opacity:1;
@@ -1006,15 +983,13 @@ button{font:inherit;color:inherit}
   position:absolute;
   z-index:3;
   left:50%;
-  top:24px;
+  top:-60px;
   width:48px;
   height:48px;
   border-radius:50%;
   transform:translateX(-50%);
-  background:var(--image) center/cover no-repeat;
-  box-shadow:
-    0 12px 30px rgba(40,30,18,.18),
-    inset 0 0 0 1px rgba(255,255,255,.34);
+  background:var(--thumb-image,var(--image)) center/cover no-repeat;
+  box-shadow:none;
   transition:
     width 1200ms var(--ease),
     height 1200ms var(--ease),
@@ -1027,7 +1002,7 @@ button{font:inherit;color:inherit}
   z-index:3;
   left:30px;
   right:30px;
-  top:164px;
+  top:52px;
   text-align:center;
   transition:opacity .42s ease,transform .58s var(--ease);
 }
@@ -1039,14 +1014,18 @@ button{font:inherit;color:inherit}
   letter-spacing:.01em;
 }
 .subtitle{
-  display:none;
+  margin:10px 0 0;
+  font-size:14px;
+  line-height:1.2;
+  font-weight:500;
+  color:rgba(255,255,255,.5);
 }
 .content{
   position:absolute;
   z-index:3;
   left:30px;
   right:30px;
-  top:264px;
+  top:124px;
   min-height:180px;
   display:grid;
   align-content:start;
@@ -1246,7 +1225,7 @@ button{font:inherit;color:inherit}
   z-index:3;
   left:28px;
   right:28px;
-  bottom:26px;
+  bottom:-24px;
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:14px;
@@ -1254,6 +1233,10 @@ button{font:inherit;color:inherit}
 }
 .actions.is-single{
   grid-template-columns:minmax(0,1fr);
+  justify-items:center;
+}
+.actions.is-single .action{
+  width:200px;
 }
 .action{
   position:relative;
@@ -1265,21 +1248,22 @@ button{font:inherit;color:inherit}
   color:#fff;
   font-size:16px;
   font-weight:500;
-  background:rgba(255,255,255,.08);
-  box-shadow:0 22px 44px rgba(0,0,0,.18);
+  background:rgba(0,0,0,.2);
+  box-shadow:none;
   -webkit-backdrop-filter:blur(20px);
   backdrop-filter:blur(20px);
-  isolation:isolate;
 }
 .action.is-hidden{
   display:none;
+}
+.action::before{
+  content:none;
 }
 .action::after{
   background:none;
 }
 .action.is-detail-action{
-  background:rgba(255,255,255,.05);
-  box-shadow:0 22px 44px rgba(0,0,0,.16);
+  background:rgba(0,0,0,.2);
 }
 .compact-chip{
   position:absolute;
@@ -1521,10 +1505,10 @@ button{font:inherit;color:inherit}
   height:48px;
   border:0;
   border-radius:50%;
-  background:#fff;
-  color:#141414;
+  background:rgba(0,0,0,.2);
+  color:#fff;
   font-size:24px;
-  box-shadow:0 12px 24px rgba(95,81,52,.12);
+  box-shadow:none;
   display:grid;
   place-items:center;
 }
@@ -1536,16 +1520,17 @@ button{font:inherit;color:inherit}
 .travel-brief{
   display:grid;
   gap:14px;
+  padding-bottom:20px;
 }
 .travel-now{
   display:flex;
   gap:11px;
   align-items:flex-start;
   padding:14px 15px;
-  border-radius:16px;
-  background:rgba(0,0,0,.1);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);
-  transition:padding .42s var(--ease),background .32s ease,box-shadow .32s ease;
+  border-radius:30px;
+  background:rgba(0,0,0,.04);
+  box-shadow:none;
+  transition:padding .42s var(--ease),background .32s ease;
 }
 .travel-now-mark{
   width:18px;
@@ -1577,50 +1562,6 @@ button{font:inherit;color:inherit}
   font-size:16px;
   line-height:1.45;
   color:#fff;
-  transition:opacity .22s ease,transform .28s var(--ease);
-}
-.travel-progress{
-  height:3px;
-  border-radius:999px;
-  background:rgba(255,255,255,.12);
-  overflow:hidden;
-}
-.travel-progress i{
-  display:block;
-  height:100%;
-  width:var(--progress,0%);
-  border-radius:inherit;
-  background:var(--status-color,#ff9f2f);
-  transition:width .6s cubic-bezier(.3,.9,.3,1),background .3s ease;
-}
-.travel-count{
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
-  font-size:11.5px;
-  color:rgba(255,255,255,.52);
-  font-weight:600;
-}
-.travel-count span,
-.travel-latest{
-  transition:opacity .22s ease,transform .28s var(--ease);
-}
-.travel-count span{
-  transition:opacity .22s ease,transform .28s var(--ease);
-}
-.travel-latest{
-  padding:12px 14px;
-  border-radius:14px;
-  background:rgba(0,0,0,.1);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
-  font-size:16px;
-  line-height:1.45;
-  color:rgba(255,255,255,.78);
-  transition:padding .42s var(--ease),background .32s ease,box-shadow .32s ease,opacity .22s ease,transform .28s var(--ease);
-}
-.travel-latest strong{
-  color:#fff;
-  font-weight:600;
   transition:opacity .22s ease,transform .28s var(--ease);
 }
 .detail-view{
@@ -1678,10 +1619,8 @@ button{font:inherit;color:inherit}
   border:0;
   border-radius:50%;
   color:#fff;
-  background:rgba(0,0,0,.15);
-  box-shadow:
-    inset 0 0 10px rgba(255,255,255,.25),
-    0 18px 36px rgba(0,0,0,.12);
+  background:rgba(0,0,0,.2);
+  box-shadow:none;
   display:grid;
   place-items:center;
   flex:0 0 auto;
@@ -1905,10 +1844,10 @@ button{font:inherit;color:inherit}
   overflow:hidden;
   border-radius:16px;
   border:0;
-  background:rgba(255,255,255,.05);
-  -webkit-backdrop-filter:blur(20px);
-  backdrop-filter:blur(20px);
-  isolation:isolate;
+  background:rgba(0,0,0,.2);
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+  isolation:auto;
   padding:13px 14px;
 }
 .detail-option-icon{
@@ -1930,13 +1869,7 @@ button{font:inherit;color:inherit}
   flex:1 1 auto;
 }
 .detail-option::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  z-index:1;
-  border-radius:inherit;
-  border:1px solid rgba(255,255,255,.18);
-  pointer-events:none;
+  content:none;
 }
 .detail-option strong{
   display:block;
@@ -1952,16 +1885,10 @@ button{font:inherit;color:inherit}
   color:rgba(255,255,255,.6);
 }
 .detail-option.is-picked{
-  background:rgba(255,255,255,.05);
+  background:rgba(0,0,0,.2);
 }
 .detail-option.is-picked::after{
-  border:1px solid rgba(255,255,255,.18);
-  background:
-    radial-gradient(circle at 50% -6px,rgba(255,255,255,.36) 0,rgba(255,255,255,.24) 32%,rgba(255,255,255,0) 66%);
-  box-shadow:
-    inset 0 0 20px rgba(255,255,255,.2),
-    inset 0 1px 8px rgba(255,255,255,.12),
-    inset 0 -8px 14px rgba(255,255,255,.08);
+  content:none;
 }
 .detail-option.is-picked strong{
   color:#fff;
@@ -2051,17 +1978,17 @@ button{font:inherit;color:inherit}
   transform:scale(.98);
 }
 .detail-action.is-primary{
-  background:#fff;
-  color:#111;
+  background:rgba(0,0,0,.2);
+  color:#fff;
 }
 .detail-action.is-secondary{
-  background:rgba(255,255,255,.08);
+  background:rgba(0,0,0,.2);
   color:#fff;
 }
 .detail-action.is-ghost{
-  background:transparent;
-  color:rgba(255,255,255,.72);
-  border:1px solid rgba(255,255,255,.1);
+  background:rgba(0,0,0,.2);
+  color:#fff;
+  border:0;
 }
 .detail-prompt{
   position:relative;
@@ -2162,16 +2089,16 @@ button{font:inherit;color:inherit}
     </div>
     <button class="home-bubble golf-home" id="entryBubble" data-home-bubble type="button" aria-label="Open Kyoto travel recovery stack">
       <span class="golf-home-media golf-home-base" aria-hidden="true">
-        <img src="assets/travel/image 62850.png" alt="">
+        <img src="assets/travel/flight.png" alt="">
       </span>
       <span class="golf-home-media golf-home-active" aria-hidden="true">
-        <img src="assets/golf-bubbles/golfBG.png" alt="">
+        <img src="assets/travel/flight.png" alt="">
       </span>
       <span class="golf-ring" aria-hidden="true"></span>
       <span class="home-pill is-base">Kyoto</span>
       <span class="home-pill is-alt" id="golfPreviewPill"><i class="pill-status-dot" aria-hidden="true"></i><span class="pill-copy">Needs input</span></span>
       <span class="home-title is-base">Cancelled<br>flight</span>
-      <span class="home-title is-alt" id="golfPreviewTitle">Rebooking your<br>Osaka flight</span>
+      <span class="home-title is-alt" id="golfPreviewTitle">Rebooking<br>Osaka flight</span>
     </button>
     <div class="home-bubble grooming-home" data-home-bubble aria-hidden="true">
       <img src="assets/final-bubbles/image 62851.png" alt="">
@@ -2259,23 +2186,25 @@ button{font:inherit;color:inherit}
 
 <script>
 (()=>{
+  const sharedTravelBgImage='assets/travel/flight.png';
   const items=[
     {
       key:'flight',
-      image:'assets/travel/image 62850.png',
+      image:sharedTravelBgImage,
+      thumbImage:'assets/travel/image 62850.png',
       status:'needs-input',
       chip:'Needs input',
       bubbleLabel:'Cancelled flight\nneeds you',
-      title:'Rebooking your Osaka flight',
+      title:'Rebooking Osaka flight',
       subtitle:'I found three workable routes into Kansai',
       content:[
         {type:'travel-brief',eye:'Needs your decision',nowLabel:'Waiting on you',nowText:'ANA 118 keeps the ryokan check-in intact, but I need your call before I release the other holds.',progress:72,count:'4 of 6 steps',statusText:'paused',latestTitle:'3 workable options',latestBody:'3 options found.'}
       ],
       actions:[
-        {label:'Open and decide',action:'detail'},
+        {label:'Open',action:'detail'},
         {label:'Pause',action:'pause'}
       ],
-      fullView:{title:'Rebooking your Osaka flight',sub:'JAL 62 was cancelled. Finding a replacement that keeps the rest of your trip intact.',timeline:[
+      fullView:{title:'Rebooking Osaka flight',sub:'JAL 62 was cancelled. Finding a replacement that keeps the rest of your trip intact.',timeline:[
         {t:1200,type:'step',text:'Reading the cancellation notice from JAL'},
         {t:2400,type:'step',text:'Checking your ticket class and rebooking rights'},
         {t:2600,type:'find',title:'Good news',body:'Your fare is fully re-bookable at no cost — JAL owes you a seat on any partner within 48 hours.'},
@@ -2307,20 +2236,21 @@ button{font:inherit;color:inherit}
     },
     {
       key:'transfer',
-      image:'assets/travel/1.jpg',
+      image:sharedTravelBgImage,
+      thumbImage:'assets/travel/1.jpg',
       status:'ongoing',
       chip:'Coordinating',
       bubbleLabel:'Airport transfer\nbeing moved',
-      title:'Realigning your airport transfer',
+      title:'Realigning airport transfer',
       subtitle:'The pickup is being shifted to match the new arrival',
       content:[
         {type:'travel-brief',eye:'Working',nowLabel:'Now',nowText:'The driver is still held for the old arrival. I’m moving pickup to 2:50pm so you still have a 35-minute landing buffer.',progress:54,count:'3 of 6 steps',statusText:'running',latestTitle:'No penalty',latestBody:'Free changes up to 6 hours out.'}
       ],
       actions:[
-        {label:'Open full view',action:'detail'},
+        {label:'Open',action:'detail'},
         {label:'Pause',action:'pause'}
       ],
-      fullView:{title:'Realigning your airport transfer',sub:'Your Kansai to Kyoto car was booked for the old landing time. Waiting on the flight before I move it.',timeline:[
+      fullView:{title:'Realigning airport transfer',sub:'Your Kansai to Kyoto car was booked for the old landing time. Waiting on the flight before I move it.',timeline:[
         {t:1500,type:'step',text:'Pulling your transfer booking'},
         {t:2600,type:'find',title:'The dependency',body:'The car is booked for 11:40am — the old arrival. I cannot re-time it until the flight task settles.'},
         {t:3000,type:'step',text:'Waiting on the flight decision…'},
@@ -2341,20 +2271,21 @@ button{font:inherit;color:inherit}
     },
     {
       key:'ryokan',
-      image:'assets/travel/image 62842.png',
+      image:sharedTravelBgImage,
+      thumbImage:'assets/travel/image 62842.png',
       status:'completed',
       chip:'Done',
       bubbleLabel:'Ryokan night\nprotected',
-      title:'Protecting your ryokan night',
+      title:'Protecting ryokan night',
       subtitle:'Check-in and dinner are already covered',
       content:[
         {type:'travel-brief',eye:'Done',nowLabel:'Result',nowText:'You now land with hours of slack before check-in, and I moved the kaiseki to 7:30pm so the arrival still feels relaxed.',progress:100,count:'6 of 6 steps',statusText:'handled in 14s',latestTitle:'They said yes',latestBody:'7:30pm seating confirmed.'}
       ],
       actions:[
-        {label:'See what I did',action:'detail'},
+        {label:'Open',action:'detail'},
         {label:'Pause',action:'pause'}
       ],
-      fullView:{title:'Protecting your ryokan night',sub:'The new arrival changes your check-in window. The ryokan has a strict desk close.',timeline:[
+      fullView:{title:'Protecting ryokan night',sub:'The new arrival changes your check-in window. The ryokan has a strict desk close.',timeline:[
         {t:1400,type:'step',text:'Re-reading the ryokan check-in policy'},
         {t:2600,type:'find',title:'The constraint',body:'Desk closes at 9:00pm, no exceptions in writing. Your first night is prepaid and non-refundable.'},
         {t:2800,type:'step',text:'Checking what the new arrival does to it'},
@@ -2381,6 +2312,7 @@ button{font:inherit;color:inherit}
   ];
 
   const phone=document.getElementById('phone');
+  phone.style.setProperty('--home-bg-image','url("'+sharedTravelBgImage+'")');
   const homeScreen=document.getElementById('homeScreen');
   const stack=document.getElementById('stack');
   const stackScreen=document.getElementById('stackScreen');
@@ -2517,20 +2449,20 @@ button{font:inherit;color:inherit}
   };
   const previewScenes={
     putting:{
-      image:'assets/golf-bubbles/golfBG.png',
+      image:sharedTravelBgImage,
       title:'Putting Session<br>8 ft',
       chip:'Putting',
       dot:'#ff9f2f'
     },
     compose:{
-      image:'assets/golf-bubbles/image 62841.png',
-      title:'Drafting your<br>message to Sally',
+      image:sharedTravelBgImage,
+      title:'Drafting<br>message to Sally',
       chip:'Composing',
       dot:'#ff9f2f'
     },
     ready:{
-      image:'assets/golf-bubbles/image 62841.png',
-      title:'Review your<br>message to Sally',
+      image:sharedTravelBgImage,
+      title:'Review<br>message to Sally',
       chip:'Completed',
       dot:'#40d978'
     }
@@ -2545,7 +2477,7 @@ button{font:inherit;color:inherit}
     const label=node.querySelector('.bubble-label');
 
     title.textContent=data.title;
-    subtitle.textContent=data.subtitle;
+    subtitle.textContent=data.content?.[0]?.count || '';
     chip.innerHTML='<i class="chip-dot" aria-hidden="true"></i><span class="chip-text"></span>';
     chip.querySelector('.chip-text').textContent=data.chip;
     label.innerHTML=data.bubbleLabel.replace(/\n/g,'<br>');
@@ -2561,10 +2493,7 @@ button{font:inherit;color:inherit}
       if(block.type==='travel-brief'){
         wrapper.classList.add('travel-brief');
         wrapper.innerHTML=
-          '<div class="travel-now"><span class="travel-now-mark" data-travel-now-mark>'+(data.status==='completed' ? '✓' : data.status==='needs-input' ? '!' : '·')+'</span><div class="travel-now-copy"><p class="travel-now-label" data-travel-now-label>'+block.nowLabel+'</p><div class="travel-now-text" data-travel-now-text>'+block.nowText+'</div></div></div>'+
-          '<div class="travel-progress" data-travel-progress style="--progress:'+block.progress+'%"><i></i></div>'+
-          '<div class="travel-count"><span data-travel-count-left>'+block.count+'</span><span data-travel-count-right>'+block.statusText+'</span></div>'+
-          '<div class="travel-latest" data-travel-latest><strong data-travel-latest-title>'+block.latestTitle+'</strong><span data-travel-latest-sep> · </span><span data-travel-latest-body>'+block.latestBody+'</span></div>';
+          '<div class="travel-now"><span class="travel-now-mark" data-travel-now-mark>'+(data.status==='completed' ? '✓' : data.status==='needs-input' ? '!' : '·')+'</span><div class="travel-now-copy"><p class="travel-now-label" data-travel-now-label>'+block.nowLabel+'</p><div class="travel-now-text" data-travel-now-text>'+block.nowText+'</div></div></div>';
       }
       content.appendChild(wrapper);
     });
@@ -2584,22 +2513,17 @@ button{font:inherit;color:inherit}
     const card=fragment.querySelector('.bubble-card');
     card.dataset.itemKey=item.key;
     card.style.setProperty('--image','url("'+item.image+'")');
+    card.style.setProperty('--thumb-image','url("'+(item.thumbImage || item.image)+'")');
     buildContent(card,item);
     stack.appendChild(fragment);
     cards.push(card);
     cardRefsByKey.set(item.key,{
       card,
+      subtitle:card.querySelector('.subtitle'),
       chipText:card.querySelector('.chip-text'),
       nowMark:card.querySelector('[data-travel-now-mark]'),
       nowLabel:card.querySelector('[data-travel-now-label]'),
       nowText:card.querySelector('[data-travel-now-text]'),
-      progress:card.querySelector('[data-travel-progress]'),
-      countLeft:card.querySelector('[data-travel-count-left]'),
-      countRight:card.querySelector('[data-travel-count-right]'),
-      latest:card.querySelector('[data-travel-latest]'),
-      latestTitle:card.querySelector('[data-travel-latest-title]'),
-      latestSep:card.querySelector('[data-travel-latest-sep]'),
-      latestBody:card.querySelector('[data-travel-latest-body]'),
       actionLabels:Array.from(card.querySelectorAll('.action-label')),
       actionButtons:Array.from(card.querySelectorAll('.action'))
     });
@@ -2742,29 +2666,21 @@ button{font:inherit;color:inherit}
     const status=statusTokens[statusName] || statusTokens.ongoing;
     const state=runnerStateName(runner);
     const fallback=item.content[0];
-    const latest=runnerLatestSummary(runner,fallback.latestTitle,fallback.latestBody);
     refs.card.style.setProperty('--status-color',status.color);
     refs.card.style.setProperty('--status-glow',status.glow);
     if(refs.chipText) animateTextSwap(refs.chipText,runnerBubbleChipText(runner));
+    if(refs.subtitle) animateTextSwap(refs.subtitle,runner.stepsDone()+' of '+runner.steps()+' steps');
     if(refs.nowMark) animateMarkSwap(refs.nowMark,state==='done' ? '✓' : state==='wait' ? '!' : '·');
     if(refs.nowLabel) animateTextSwap(refs.nowLabel,state==='wait' ? 'Waiting on you' : state==='done' ? 'Result' : state==='paused' ? 'Paused' : 'Now');
     if(refs.nowText) animateTextSwap(refs.nowText,runner.status==='idle' ? fallback.nowText : runner.current);
-    if(refs.progress) refs.progress.style.setProperty('--progress',((runner.index/runner.timeline.length)*100).toFixed(1)+'%');
-    if(refs.countLeft) animateTextSwap(refs.countLeft,runner.stepsDone()+' of '+runner.steps()+' steps');
-    if(refs.countRight) animateTextSwap(refs.countRight,state==='done' ? 'handled in '+runner.secs+'s' : state==='wait' || state==='paused' ? 'paused' : 'running');
-    if(refs.latestTitle) animateTextSwap(refs.latestTitle,latest.title);
-    if(refs.latestBody) animateTextSwap(refs.latestBody,latest.body);
-    if(refs.latestSep) refs.latestSep.style.display=latest.body ? '' : 'none';
-    if(refs.actionLabels[0]) animateTextSwap(refs.actionLabels[0],state==='wait' ? 'Open and decide' : state==='done' ? 'See what I did' : 'Open full view');
-    if(refs.actionLabels[1]) animateTextSwap(refs.actionLabels[1],state==='paused' ? 'Resume' : 'Pause');
-    const shouldSingleAction=state==='done' || state==='wait';
+    if(refs.actionLabels[0]) animateTextSwap(refs.actionLabels[0],'Open');
+    const shouldSingleAction=true;
     if(refs.actionButtons[1]){
-      refs.actionButtons[1].dataset.action=state==='paused' ? 'resume' : 'pause';
-      refs.actionButtons[1].classList.toggle('is-hidden',shouldSingleAction);
+      refs.actionButtons[1].classList.add('is-hidden');
     }
     const actionsRow=refs.card.querySelector('.actions');
     if(actionsRow){
-      actionsRow.classList.toggle('is-single',shouldSingleAction);
+      actionsRow.classList.add('is-single');
     }
     syncActiveCardHeight(items.findIndex(entry=>entry.key===item.key));
     if(items[activeIndex]?.key===item.key){
@@ -3031,6 +2947,10 @@ button{font:inherit;color:inherit}
     clone.style.setProperty('--opacity','0');
     clone.style.setProperty('--blur','0px');
     clone.style.setProperty('--r','70px');
+    const cloneActions=clone.querySelector('.actions');
+    if(cloneActions){
+      cloneActions.style.display='none';
+    }
     stackScreen.appendChild(clone);
     const height=Math.ceil(clone.getBoundingClientRect().height);
     clone.remove();
@@ -3181,7 +3101,7 @@ button{font:inherit;color:inherit}
     phone.style.setProperty('--open-final-left',(phoneRect.width*.5-cover).toFixed(2)+'px');
     phone.style.setProperty('--open-final-top',(phoneRect.height*.5-cover).toFixed(2)+'px');
     phone.style.setProperty('--open-final-size',(cover*2).toFixed(2)+'px');
-    openTransition.style.setProperty('--open-image','url("'+(golfPreviewActive ? golfPreviewImage.getAttribute('src') : 'assets/travel/image 62850.png')+'")');
+    openTransition.style.setProperty('--open-image','url("'+(golfPreviewActive ? golfPreviewImage.getAttribute('src') : sharedTravelBgImage)+'")');
 
     window.clearTimeout(stackEnterTimer);
     window.clearTimeout(stackCloseTimer);
@@ -3251,7 +3171,7 @@ button{font:inherit;color:inherit}
       return {w:20,h:20,x:0,y:-308,r:999,scale:1,opacity:1,blur:4,saturation:.84,bgOpacity:1,padTop:0,padX:0,padBottom:0,surfaceOpacity:1,surfaceBlur:0,thumbTop:24,thumbSize:64,thumbOpacity:0,chipTop:28,chipTranslateY:0,chipOpacity:0,labelOpacity:1};
     }
     if(slot==='is-active'){
-      return {w:348,h:activeH,x:0,y:0,r:70,scale:1,opacity:1,blur:0,saturation:1,bgOpacity:1,padTop:110,padX:28,padBottom:26,surfaceOpacity:0,surfaceBlur:14,thumbTop:24,thumbSize:64,thumbOpacity:1,chipTop:28,chipTranslateY:0,chipOpacity:0,labelOpacity:0};
+      return {w:348,h:activeH,x:0,y:0,r:70,scale:1,opacity:1,blur:0,saturation:1,bgOpacity:1,padTop:48,padX:28,padBottom:26,surfaceOpacity:0,surfaceBlur:14,thumbTop:-60,thumbSize:64,thumbOpacity:1,chipTop:28,chipTranslateY:0,chipOpacity:0,labelOpacity:0};
     }
     if(slot==='is-next'){
       return {w:160,h:160,x:0,y:308,r:999,scale:1,opacity:1,blur:0,saturation:1,bgOpacity:1,padTop:0,padX:0,padBottom:0,surfaceOpacity:0,surfaceBlur:0,thumbTop:0,thumbSize:160,thumbOpacity:1,chipTop:28,chipTranslateY:0,chipOpacity:1,labelOpacity:1};
@@ -3510,6 +3430,11 @@ button{font:inherit;color:inherit}
       return;
     }
     const target=items[modIndex(index+Math.sign(progress))];
+    if(current.image===target.image){
+      primary.style.opacity='1';
+      secondary.style.opacity='0';
+      return;
+    }
     setStackBackgroundImage(secondary,target.image);
     primary.style.opacity=(1-blend).toFixed(3);
     secondary.style.opacity=blend.toFixed(3);
