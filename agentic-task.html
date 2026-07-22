@@ -465,7 +465,8 @@ button{font:inherit;color:inherit}
   animation:aiThoughtSweep 5.6s ease-in-out infinite;
 }
 .golf-home[data-loading-motion="aurora"] .ai-generation-field::before{display:none}
-.aurora-loading-canvas{
+.aurora-loading-canvas,
+.pet-aurora-canvas{
   position:absolute;
   left:-15%;
   top:-15%;
@@ -476,6 +477,7 @@ button{font:inherit;color:inherit}
   pointer-events:none;
 }
 .golf-home[data-loading-motion="aurora"] .aurora-loading-canvas{display:block}
+.grooming-home .pet-aurora-canvas{display:block}
 .golf-home-media{
   position:absolute;
   inset:0;
@@ -2425,6 +2427,7 @@ button{font:inherit;color:inherit}
       <span class="home-title" id="golfPreviewTitle">Amending<br>Osaka trip</span>
     </button>
     <div class="home-bubble task-home grooming-home" data-home-bubble aria-label="Running pet products store">
+      <canvas class="pet-aurora-canvas" width="440" height="440" aria-hidden="true"></canvas>
       <span class="task-title">Running pet<br>products store</span>
       <img class="task-asset" src="assets/travel/pet.png" alt="">
     </div>
@@ -2875,6 +2878,9 @@ button{font:inherit;color:inherit}
   function animateAuroraLoading(now){
     const t=((now-auroraLoadingStart)/1000)*auroraMotionSpeed;
     drawAuroraArc(auroraLoadingCanvas,t);
+    document.querySelectorAll('.pet-aurora-canvas').forEach(canvas=>{
+      drawAuroraArc(canvas,t+3);
+    });
     document.querySelectorAll('.thumb-aurora-canvas').forEach(canvas=>{
       drawAuroraArc(canvas,t);
     });
