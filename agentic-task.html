@@ -592,7 +592,7 @@ button{font:inherit;color:inherit}
   text-align:center;
   font-size:25px;
   line-height:1.24;
-  font-weight:600;
+  font-weight:500;
   text-shadow:0 4px 16px rgba(0,0,0,.28);
 }
 .grooming-home{
@@ -610,7 +610,7 @@ button{font:inherit;color:inherit}
   --task-blur-position:center 38%;
 }
 .grooming-home{
-  --task-blur-image:url("assets/travel/golf ball.png");
+  --task-blur-image:url("assets/travel/pet.png");
   --task-blur-size:156px 156px;
   --task-blur-position:center calc(100% + 62px);
 }
@@ -619,9 +619,9 @@ button{font:inherit;color:inherit}
   z-index:3;
   display:block;
   text-align:center;
-  font-size:21px;
+  font-size:18px;
   line-height:1.25;
-  font-weight:600;
+  font-weight:500;
 }
 .task-asset{
   position:absolute;
@@ -632,6 +632,9 @@ button{font:inherit;color:inherit}
   transform:translateX(-50%);
   object-fit:contain!important;
   border-radius:0!important;
+}
+.grooming-home .task-asset{
+  bottom:-42px;
 }
 .home-pill{
   display:inline-flex;
@@ -2409,7 +2412,7 @@ button{font:inherit;color:inherit}
       <span class="context-title">Osaka · Sunny</span>
       <span class="context-copy">22°</span>
     </div>
-    <button class="home-bubble task-home golf-home" id="entryBubble" data-home-bubble data-loading-motion="organic" type="button" aria-label="Open Osaka flight task">
+    <button class="home-bubble task-home golf-home" id="entryBubble" data-home-bubble data-loading-motion="aurora" type="button" aria-label="Open Osaka flight task">
       <span class="golf-home-media golf-home-base" aria-hidden="true">
         <img src="assets/travel/flight.png" alt="">
       </span>
@@ -2421,9 +2424,9 @@ button{font:inherit;color:inherit}
       <span class="home-pill is-alt" id="golfPreviewPill"><i class="pill-status-dot" aria-hidden="true"></i><span class="pill-copy">Needs input</span></span>
       <span class="home-title" id="golfPreviewTitle">Amending<br>Osaka trip</span>
     </button>
-    <div class="home-bubble task-home grooming-home" data-home-bubble aria-label="Golf task">
-      <span class="task-title">Golf<br>lesson</span>
-      <img class="task-asset" src="assets/travel/golf ball.png" alt="">
+    <div class="home-bubble task-home grooming-home" data-home-bubble aria-label="Running pet products store">
+      <span class="task-title">Running pet<br>products store</span>
+      <img class="task-asset" src="assets/travel/pet.png" alt="">
     </div>
     <button class="spark-home" type="button" aria-label="Assistant">
       <img src="assets/golf-bubbles/ai-stars.png" alt="" aria-hidden="true">
@@ -2496,8 +2499,8 @@ button{font:inherit;color:inherit}
 <aside class="desktop-panel loading-options" aria-label="Loading motion options">
   <h2>Loading motion</h2>
   <div class="loading-switcher" role="group" aria-label="Choose loading motion">
-    <button class="loading-option is-active" data-loading-option="organic" type="button" aria-pressed="true">Organic ribbon</button>
-    <button class="loading-option" data-loading-option="aurora" type="button" aria-pressed="false">Aurora arc</button>
+    <button class="loading-option" data-loading-option="organic" type="button" aria-pressed="false">Organic ribbon</button>
+    <button class="loading-option is-active" data-loading-option="aurora" type="button" aria-pressed="true">Aurora arc</button>
   </div>
 </aside>
 </div>
